@@ -1,9 +1,10 @@
 {
   "name": "xroute",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Mobx state based router",
   "files": [ "dist/*" ],
   "main": "./dist",
+  "types": "./dist/xroute.d.ts",
   "scripts": {
     "dist": "tsc -p tsconfig.production.json",
     "dev": "start-storybook"
