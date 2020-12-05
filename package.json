@@ -1,11 +1,8 @@
 {
   "name": "xroute",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Mobx state based router",
-  "files": [
-    "./dist/xroute.js",
-    "./dist/xroute.d.ts"
-  ],
+  "files": [ "./dist" ],
   "main": "./dist",
   "scripts": {
     "dist": "tsc -p tsconfig.production.json",
