@@ -6,7 +6,7 @@
     "./dist/xroute.js",
     "./dist/xroute.d.ts"
   ],
-  "main": ".dist",
+  "main": "./dist",
   "scripts": {
     "dist": "tsc -p tsconfig.production.json",
     "dev": "start-storybook"
