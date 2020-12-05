@@ -1,5 +1,6 @@
 {
   "name": "xroute",
+  "version": "1.0.0",
   "description": "Mobx state based router",
   "files": ["./dist/xroute.js", "./dist/xroute.d.ts"],
   "main": ".dist",
