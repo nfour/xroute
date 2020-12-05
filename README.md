@@ -14,7 +14,7 @@ Mobx powered `History` router, with types.
 - [x] Requires >= Mobx@6
 
 ```tsx
-import { XRoute } from 'xrouter'
+import { XRoute } from 'xroute'
 
 //
 // Define some routes
@@ -36,7 +36,7 @@ const UserProfileRoute = XRoute(
 // Construct 
 //
 
-import { XRouter } from 'xrouter'
+import { XRouter } from 'xroute'
 import { createHashHistory } from 'history'
 
 const router = new XRouter(
