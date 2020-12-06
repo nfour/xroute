@@ -12,11 +12,55 @@ exports.XRoute = XRoute;
  * The Mobx class which holds routes.
  */
 class XRouter {
-    location;
-    definition;
-    dispose;
-    history;
     constructor(definition, history = history_1.createHashHistory()) {
+        Object.defineProperty(this, "location", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "definition", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "dispose", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "history", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        Object.defineProperty(this, "go", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: (...args) => this.history.go(...args)
+        });
+        Object.defineProperty(this, "back", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: () => this.history.back()
+        });
+        Object.defineProperty(this, "forward", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: () => this.history.forward()
+        });
+        Object.defineProperty(this, "block", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: (...args) => this.history.block(...args)
+        });
         this.definition = definition;
         this.history = history;
         const setLocation = (location) => {
@@ -64,7 +108,8 @@ class XRouter {
      * })
      */
     get routes() {
-        const { pathname = '/', hash, search } = this.location ?? {};
+        var _a;
+        const { pathname = '/', hash, search } = (_a = this.location) !== null && _a !== void 0 ? _a : {};
         return this.definition.reduce((a, route) => {
             const { key, resource } = route;
             const matched = path_to_regexp_1.match(resource, {
@@ -103,10 +148,6 @@ class XRouter {
     replace(route, params) {
         this.navigate(route, params, 'replace');
     }
-    go = (...args) => this.history.go(...args);
-    back = () => this.history.back();
-    forward = () => this.history.forward();
-    block = (...args) => this.history.block(...args);
     /**
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.

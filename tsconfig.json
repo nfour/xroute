@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "strict": true,
-    "target": "ESNext",
+    "target": "ES2018",
     "module": "CommonJS",
     "outDir": "./dist",
     "allowJs": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "lib": [ "dom", "esnext" ],
+    "lib": [ "dom", "es2018" ],
     "jsx": "react",
     "declaration": true,
     "experimentalDecorators": true,
