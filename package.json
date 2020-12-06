@@ -3,7 +3,7 @@
   "version": "1.0.4",
   "description": "Mobx state based router",
   "files": [ "dist/*" ],
-  "main": "./dist",
+  "main": "./dist/xroute.js",
   "types": "./dist/xroute.d.ts",
   "scripts": {
     "dist": "tsc -p tsconfig.production.json",
