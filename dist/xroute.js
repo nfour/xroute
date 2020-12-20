@@ -110,37 +110,38 @@ class XRouter {
     get routes() {
         var _a;
         const { pathname = '/', hash, search } = (_a = this.location) !== null && _a !== void 0 ? _a : {};
-        return this.definition.reduce((a, route) => {
+        return this.definition.reduce((routes, route) => {
             const { key, resource } = route;
             const matched = path_to_regexp_1.match(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
             })(pathname);
             const { index, path, params } = matched || {};
-            return {
-                ...a,
-                [key]: {
-                    index,
-                    params,
-                    resource,
-                    path,
-                    key,
-                    hash,
-                    search,
-                    isActive: index !== undefined,
-                    push: (p) => this.push(route, p),
-                    replace: (p) => this.replace(route, p),
-                },
+            const newRoute = {
+                index,
+                params,
+                resource,
+                path,
+                key,
+                hash,
+                search,
+                isActive: index !== undefined,
+                push: (p) => this.push(route, p),
+                replace: (p) => this.replace(route, p),
             };
+            return { ...routes, [key]: newRoute, };
         }, {});
     }
     /** The currently active route. */
     get route() {
         if (!this.routes)
             return;
-        for (const route of Object.values(this.routes))
+        // Get routes in order.
+        for (const { key } of this.definition) {
+            const route = this.routes[key];
             if (route.isActive)
                 return route;
+        }
     }
     push(route, params) {
         this.navigate(route, params, 'push');

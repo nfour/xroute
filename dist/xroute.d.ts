@@ -13,7 +13,7 @@ export declare class XRouter<LIST extends IXRoute[], KEYS extends LIST[number]['
     [KEY in KEYS]: ILiveRoute<Union.Select<LIST[number], {
         key: KEY;
     }>>;
-}, LOOSE_ROUTE extends ILiveRoute<LIST[number]>> {
+}> {
     location: Location;
     definition: LIST;
     dispose: () => void;
@@ -44,7 +44,7 @@ export declare class XRouter<LIST extends IXRoute[], KEYS extends LIST[number]['
      */
     get routes(): ROUTES;
     /** The currently active route. */
-    get route(): undefined | LOOSE_ROUTE;
+    get route(): ROUTES[KEYS] | undefined;
     /** history.push() a given route */
     push<ROUTE extends IXRoute>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.push(pathname) */
