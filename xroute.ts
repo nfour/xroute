@@ -26,7 +26,6 @@ export class XRouter<
     // [ITEM in LIST[number] as ITEM['key']]: ILiveRoute<ITEM>;
     [KEY in KEYS]: ILiveRoute<Union.Select<LIST[number], { key: KEY }>>;
   },
-  LOOSE_ROUTE extends ILiveRoute<LIST[number]>
 > {
   location!: Location;
   definition: LIST;
@@ -97,7 +96,7 @@ export class XRouter<
   get routes(): ROUTES {
     const { pathname = '/', hash, search } = this.location ?? {};
 
-    return this.definition.reduce((a, route) => {
+    return this.definition.reduce((routes, route) => {
       const { key, resource } = route;
       const matched = match(resource, {
         decode: decodeURI,
@@ -106,9 +105,7 @@ export class XRouter<
 
       const { index, path, params } = matched || {};
 
-      return {
-        ...a,
-        [key]: {
+      const newRoute: ILiveRoute<typeof route> = {
           index,
           params,
           resource,
@@ -119,17 +116,22 @@ export class XRouter<
           isActive: index !== undefined,
           push: (p: {}) => this.push(route, p),
           replace: (p: {}) => this.replace(route, p),
-        } as ILiveRoute<typeof route>,
-      };
+        }
+
+      return { ...routes, [key]: newRoute, };
     }, {} as ROUTES);
   }
 
   /** The currently active route. */
-  get route(): undefined | LOOSE_ROUTE {
+  get route() {
     if (!this.routes) return;
 
-    for (const route of Object.values<LOOSE_ROUTE>(this.routes as any))
+    // Get routes in order.
+    for (const { key } of this.definition) {
+      const route = this.routes[key as KEYS]
+
       if (route.isActive) return route;
+    }
   }
 
   /** history.push() a given route */
