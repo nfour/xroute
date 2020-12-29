@@ -1,8 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.XRouter = exports.XRoute = void 0;
 const history_1 = require("history");
-const isEqual_1 = require("lodash-es/isEqual");
+const isEqual_1 = __importDefault(require("lodash/isEqual"));
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 /** Create a typed route object of shape IXRoute */

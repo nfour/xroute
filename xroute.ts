@@ -1,5 +1,5 @@
 import { createHashHistory, History, Location } from 'history';
-import isEqual from 'lodash-es/isEqual';
+import isEqual from 'lodash/isEqual';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 import { Union } from 'ts-toolbelt';
