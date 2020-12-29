@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.XRouter = exports.XRoute = void 0;
 const history_1 = require("history");
-const lodash_1 = require("lodash");
+const isEqual_1 = require("lodash-es/isEqual");
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 /** Create a typed route object of shape IXRoute */
@@ -64,12 +64,12 @@ class XRouter {
         this.definition = definition;
         this.history = history;
         const setLocation = (location) => {
-            if (lodash_1.isEqual(this.location, location))
+            if (isEqual_1.default(this.location, location))
                 return;
             this.location = { ...location };
         };
         const setHistory = (location) => {
-            if (lodash_1.isEqual(this.history.location, location))
+            if (isEqual_1.default(this.history.location, location))
                 return;
             this.history.replace({ ...location });
         };
