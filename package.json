@@ -1,6 +1,6 @@
 {
   "name": "xroute",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Mobx state based router",
   "files": [
     "dist/*"
