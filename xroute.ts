@@ -4,7 +4,7 @@ import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 import { Union } from 'ts-toolbelt';
 
-/** Create a typed route object of shape IXRoute */
+/** Create a typed route config */
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
@@ -19,12 +19,12 @@ export const XRoute = <
  * The Mobx class which holds routes.
  */
 export class XRouter<
-  LIST extends IXRoute[],
+  LIST extends RouteConfig[],
   KEYS extends LIST[number]['key'],
   ROUTES extends {
     // Currently doesnt work with eslint and required TS 4.1
     // [ITEM in LIST[number] as ITEM['key']]: ILiveRoute<ITEM>;
-    [KEY in KEYS]: ILiveRoute<Union.Select<LIST[number], { key: KEY }>>;
+    [KEY in KEYS]: LiveRoute<Union.Select<LIST[number], { key: KEY }>>;
   },
 > {
   location!: Location;
@@ -105,7 +105,7 @@ export class XRouter<
 
       const { index, path, params } = matched || {};
 
-      const newRoute: ILiveRoute<typeof route> = {
+      const newRoute: LiveRoute<typeof route> = {
           index,
           params,
           resource,
@@ -135,22 +135,22 @@ export class XRouter<
   }
 
   /** history.push() a given route */
-  push<ROUTE extends IXRoute>(route: ROUTE, params?: ROUTE['params']): void;
+  push<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
 
   /** Equal to history.push(pathname) */
   push(pathname: string): void;
 
-  push<ROUTE extends IXRoute>(route: ROUTE | string, params?: ROUTE['params']) {
+  push<ROUTE extends RouteConfig>(route: ROUTE | string, params?: ROUTE['params']) {
     this.navigate(route, params, 'push');
   }
 
   /** history.replace() a given route */
-  replace<ROUTE extends IXRoute>(route: ROUTE, params?: ROUTE['params']): void;
+  replace<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
 
   /** Equal to history.replace(pathname) */
   replace(pathname: string): void;
 
-  replace(route: IXRoute | string, params?: {}) {
+  replace(route: RouteConfig | string, params?: {}) {
     this.navigate(route, params, 'replace');
   }
 
@@ -163,7 +163,7 @@ export class XRouter<
    * Be aware, toPath will throw if missing params.
    * When navigating from another route, ensure you provide all required params.
    */
-  protected navigate<ROUTE_DEF extends IXRoute>(
+  protected navigate<ROUTE_DEF extends RouteConfig>(
     route: ROUTE_DEF | string,
     params: Partial<ROUTE_DEF['params']> = {},
     method: 'push' | 'replace' = 'push',
@@ -186,9 +186,13 @@ export class XRouter<
   }
 }
 
-export type IXRoute = ReturnType<typeof XRoute>;
+export type RouteConfig = ReturnType<typeof XRoute>;
 
-interface ILiveRoute<ITEM extends IXRoute> {
+/**
+ * A "live" route, typically found at:
+ * @example new XRouter(...).routes.myFooRoute
+ */
+export interface LiveRoute<ITEM extends RouteConfig> {
   key: ITEM['key'];
   resource: ITEM['resource'];
   params?: ITEM['params'];
