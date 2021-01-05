@@ -1,6 +1,6 @@
 import { History, Location } from 'history';
 import { Union } from 'ts-toolbelt';
-/** Create a typed route object of shape IXRoute */
+/** Create a typed route config */
 export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAMS extends {}>(key: KEY, resource: RESOURCE, params: PARAMS) => {
     key: KEY;
     resource: RESOURCE;
@@ -9,8 +9,8 @@ export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAM
 /**
  * The Mobx class which holds routes.
  */
-export declare class XRouter<LIST extends IXRoute[], KEYS extends LIST[number]['key'], ROUTES extends {
-    [KEY in KEYS]: ILiveRoute<Union.Select<LIST[number], {
+export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[number]['key'], ROUTES extends {
+    [KEY in KEYS]: LiveRoute<Union.Select<LIST[number], {
         key: KEY;
     }>>;
 }> {
@@ -46,11 +46,11 @@ export declare class XRouter<LIST extends IXRoute[], KEYS extends LIST[number]['
     /** The currently active route. */
     get route(): ROUTES[KEYS] | undefined;
     /** history.push() a given route */
-    push<ROUTE extends IXRoute>(route: ROUTE, params?: ROUTE['params']): void;
+    push<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.push(pathname) */
     push(pathname: string): void;
     /** history.replace() a given route */
-    replace<ROUTE extends IXRoute>(route: ROUTE, params?: ROUTE['params']): void;
+    replace<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.replace(pathname) */
     replace(pathname: string): void;
     go: History['go'];
@@ -61,10 +61,14 @@ export declare class XRouter<LIST extends IXRoute[], KEYS extends LIST[number]['
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
      */
-    protected navigate<ROUTE_DEF extends IXRoute>(route: ROUTE_DEF | string, params?: Partial<ROUTE_DEF['params']>, method?: 'push' | 'replace'): void;
+    protected navigate<ROUTE_DEF extends RouteConfig>(route: ROUTE_DEF | string, params?: Partial<ROUTE_DEF['params']>, method?: 'push' | 'replace'): void;
 }
-export declare type IXRoute = ReturnType<typeof XRoute>;
-interface ILiveRoute<ITEM extends IXRoute> {
+export declare type RouteConfig = ReturnType<typeof XRoute>;
+/**
+ * A "live" route, typically found at:
+ * @example new XRouter(...).routes.myFooRoute
+ */
+export interface LiveRoute<ITEM extends RouteConfig> {
     key: ITEM['key'];
     resource: ITEM['resource'];
     params?: ITEM['params'];
@@ -76,4 +80,3 @@ interface ILiveRoute<ITEM extends IXRoute> {
     push(params: ITEM['params']): void;
     replace(params: ITEM['params']): void;
 }
-export {};

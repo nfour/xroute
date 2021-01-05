@@ -8,7 +8,7 @@ const history_1 = require("history");
 const isEqual_1 = __importDefault(require("lodash/isEqual"));
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
-/** Create a typed route object of shape IXRoute */
+/** Create a typed route config */
 const XRoute = (key, resource, params) => ({ key, resource, params });
 exports.XRoute = XRoute;
 /**
