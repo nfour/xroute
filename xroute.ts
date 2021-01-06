@@ -22,15 +22,16 @@ export class XRouter<
   KEYS extends LIST[number]['key'],
   ROUTES extends {
     [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
-  }
+  },
+  ROUTE_CONFIG extends RouteConfig
 > {
   location!: Location;
-  definition: LIST;
   dispose: () => void;
 
-  protected history: History;
-
-  constructor(definition: LIST, history: History = createHashHistory()) {
+  constructor(
+    public definition: LIST,
+    protected history: History = createHashHistory(),
+  ) {
     this.definition = definition;
     this.history = history;
 
@@ -93,7 +94,8 @@ export class XRouter<
   get routes(): ROUTES {
     const { pathname = '/', hash, search } = this.location ?? {};
 
-    return this.definition.reduce((routes, route) => {
+    return this.definition.reduce((routes, _route) => {
+      const route = _route as ROUTE_CONFIG;
       const { key, resource } = route;
       const matched = match(resource, {
         decode: decodeURI,
@@ -102,17 +104,24 @@ export class XRouter<
 
       const { index, path, params } = matched || {};
 
+      const mergeParams = (p = {}) => ({
+        ...((this.route?.params as {}) ?? {}),
+        ...p,
+      });
+
       const newRoute: LiveRoute<typeof route> = {
+        isActive: index !== undefined,
+        key,
         index,
         params,
         resource,
         path,
-        key,
         hash,
         search,
-        isActive: index !== undefined,
-        push: (p: {}) => this.push(route, p),
-        replace: (p: {}) => this.replace(route, p),
+        push: (p: {}) => this.push(route, mergeParams(p)),
+        pushExact: (p: {}) => this.push(route, p),
+        replace: (p: {}) => this.replace(route, mergeParams(p)),
+        replaceExact: (p: {}) => this.replace(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -132,12 +141,15 @@ export class XRouter<
   }
 
   /** history.push() a given route */
-  push<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
+  push<ROUTE extends ROUTE_CONFIG>(
+    route: ROUTE,
+    params?: ROUTE['params'],
+  ): void;
 
   /** Equal to history.push(pathname) */
   push(pathname: string): void;
 
-  push<ROUTE extends RouteConfig>(
+  push<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE | string,
     params?: ROUTE['params'],
   ) {
@@ -145,7 +157,7 @@ export class XRouter<
   }
 
   /** history.replace() a given route */
-  replace<ROUTE extends RouteConfig>(
+  replace<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE,
     params?: ROUTE['params'],
   ): void;
@@ -153,7 +165,7 @@ export class XRouter<
   /** Equal to history.replace(pathname) */
   replace(pathname: string): void;
 
-  replace(route: RouteConfig | string, params?: {}) {
+  replace(route: ROUTE_CONFIG | string, params?: {}) {
     this.navigate(route, params, 'replace');
   }
 
@@ -166,7 +178,7 @@ export class XRouter<
    * Be aware, toPath will throw if missing params.
    * When navigating from another route, ensure you provide all required params.
    */
-  protected navigate<ROUTE_DEF extends RouteConfig>(
+  protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(
     route: ROUTE_DEF | string,
     params: Partial<ROUTE_DEF['params']> = {},
     method: 'push' | 'replace' = 'push',
@@ -204,8 +216,12 @@ export interface LiveRoute<ITEM extends RouteConfig> {
   index?: number;
   path?: string;
   isActive: boolean;
-  push(params: ITEM['params']): void;
-  replace(params: ITEM['params']): void;
+
+  replaceExact(params: ITEM['params']): void;
+  pushExact(params: ITEM['params']): void;
+
+  push(params?: Partial<ITEM['params']>): void;
+  replace(params?: Partial<ITEM['params']>): void;
 }
 
 export interface ActiveLiveRoute<ITEM extends RouteConfig>

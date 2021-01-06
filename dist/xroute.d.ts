@@ -10,11 +10,11 @@ export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAM
  */
 export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[number]['key'], ROUTES extends {
     [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
-}> {
-    location: Location;
+}, ROUTE_CONFIG extends RouteConfig> {
     definition: LIST;
-    dispose: () => void;
     protected history: History;
+    location: Location;
+    dispose: () => void;
     constructor(definition: LIST, history?: History);
     /**
      * A map of routes `{ [route.key]: route }`
@@ -43,11 +43,11 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
     /** The currently active route. */
     get route(): ActiveLiveRoute<Required<ROUTES[KEYS]>> | undefined;
     /** history.push() a given route */
-    push<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
+    push<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.push(pathname) */
     push(pathname: string): void;
     /** history.replace() a given route */
-    replace<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
+    replace<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.replace(pathname) */
     replace(pathname: string): void;
     go: History['go'];
@@ -58,7 +58,7 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
      */
-    protected navigate<ROUTE_DEF extends RouteConfig>(route: ROUTE_DEF | string, params?: Partial<ROUTE_DEF['params']>, method?: 'push' | 'replace'): void;
+    protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(route: ROUTE_DEF | string, params?: Partial<ROUTE_DEF['params']>, method?: 'push' | 'replace'): void;
 }
 export declare type RouteConfig = ReturnType<typeof XRoute>;
 /**
@@ -74,8 +74,10 @@ export interface LiveRoute<ITEM extends RouteConfig> {
     index?: number;
     path?: string;
     isActive: boolean;
-    push(params: ITEM['params']): void;
-    replace(params: ITEM['params']): void;
+    replaceExact(params: ITEM['params']): void;
+    pushExact(params: ITEM['params']): void;
+    push(params?: Partial<ITEM['params']>): void;
+    replace(params?: Partial<ITEM['params']>): void;
 }
 export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
     params: ITEM['params'];

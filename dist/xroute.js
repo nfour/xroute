@@ -16,25 +16,25 @@ exports.XRoute = XRoute;
  */
 class XRouter {
     constructor(definition, history = history_1.createHashHistory()) {
+        Object.defineProperty(this, "definition", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: definition
+        });
+        Object.defineProperty(this, "history", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: history
+        });
         Object.defineProperty(this, "location", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: void 0
         });
-        Object.defineProperty(this, "definition", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
         Object.defineProperty(this, "dispose", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "history", {
             enumerable: true,
             configurable: true,
             writable: true,
@@ -113,24 +113,34 @@ class XRouter {
     get routes() {
         var _a;
         const { pathname = '/', hash, search } = (_a = this.location) !== null && _a !== void 0 ? _a : {};
-        return this.definition.reduce((routes, route) => {
+        return this.definition.reduce((routes, _route) => {
+            const route = _route;
             const { key, resource } = route;
             const matched = path_to_regexp_1.match(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
             })(pathname);
             const { index, path, params } = matched || {};
+            const mergeParams = (p = {}) => {
+                var _a, _b;
+                return ({
+                    ...((_b = (_a = this.route) === null || _a === void 0 ? void 0 : _a.params) !== null && _b !== void 0 ? _b : {}),
+                    ...p,
+                });
+            };
             const newRoute = {
+                isActive: index !== undefined,
+                key,
                 index,
                 params,
                 resource,
                 path,
-                key,
                 hash,
                 search,
-                isActive: index !== undefined,
-                push: (p) => this.push(route, p),
-                replace: (p) => this.replace(route, p),
+                push: (p) => this.push(route, mergeParams(p)),
+                pushExact: (p) => this.push(route, p),
+                replace: (p) => this.replace(route, mergeParams(p)),
+                replaceExact: (p) => this.replace(route, p),
             };
             return { ...routes, [key]: newRoute };
         }, {});
