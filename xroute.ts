@@ -2,9 +2,8 @@ import { createHashHistory, History, Location } from 'history';
 import isEqual from 'lodash/isEqual';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
-import { Union } from 'ts-toolbelt';
 
-/** Create a typed route config */
+/** Create a typed route config object */
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
@@ -16,16 +15,14 @@ export const XRoute = <
 ) => ({ key, resource, params });
 
 /**
- * The Mobx class which holds routes.
+ * The Mobx class which handles routing over History.
  */
 export class XRouter<
   LIST extends RouteConfig[],
   KEYS extends LIST[number]['key'],
   ROUTES extends {
-    // Currently doesnt work with eslint and required TS 4.1
-    // [ITEM in LIST[number] as ITEM['key']]: ILiveRoute<ITEM>;
-    [KEY in KEYS]: LiveRoute<Union.Select<LIST[number], { key: KEY }>>;
-  },
+    [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
+  }
 > {
   location!: Location;
   definition: LIST;
@@ -106,19 +103,19 @@ export class XRouter<
       const { index, path, params } = matched || {};
 
       const newRoute: LiveRoute<typeof route> = {
-          index,
-          params,
-          resource,
-          path,
-          key,
-          hash,
-          search,
-          isActive: index !== undefined,
-          push: (p: {}) => this.push(route, p),
-          replace: (p: {}) => this.replace(route, p),
-        }
+        index,
+        params,
+        resource,
+        path,
+        key,
+        hash,
+        search,
+        isActive: index !== undefined,
+        push: (p: {}) => this.push(route, p),
+        replace: (p: {}) => this.replace(route, p),
+      };
 
-      return { ...routes, [key]: newRoute, };
+      return { ...routes, [key]: newRoute };
     }, {} as ROUTES);
   }
 
@@ -128,9 +125,9 @@ export class XRouter<
 
     // Get routes in order.
     for (const { key } of this.definition) {
-      const route = this.routes[key as KEYS]
+      const route = this.routes[key as KEYS];
 
-      if (route.isActive) return route;
+      if (route.isActive) return asActiveRoute(route);
     }
   }
 
@@ -140,12 +137,18 @@ export class XRouter<
   /** Equal to history.push(pathname) */
   push(pathname: string): void;
 
-  push<ROUTE extends RouteConfig>(route: ROUTE | string, params?: ROUTE['params']) {
+  push<ROUTE extends RouteConfig>(
+    route: ROUTE | string,
+    params?: ROUTE['params'],
+  ) {
     this.navigate(route, params, 'push');
   }
 
   /** history.replace() a given route */
-  replace<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
+  replace<ROUTE extends RouteConfig>(
+    route: ROUTE,
+    params?: ROUTE['params'],
+  ): void;
 
   /** Equal to history.replace(pathname) */
   replace(pathname: string): void;
@@ -203,4 +206,29 @@ export interface LiveRoute<ITEM extends RouteConfig> {
   isActive: boolean;
   push(params: ITEM['params']): void;
   replace(params: ITEM['params']): void;
+}
+
+export interface ActiveLiveRoute<ITEM extends RouteConfig>
+  extends LiveRoute<ITEM> {
+  params: ITEM['params'];
+  resource: ITEM['resource'];
+  key: ITEM['key'];
+  path: string;
+  index: number;
+  hash: string;
+  isActive: true;
+}
+
+/** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
+export function asActiveRoutes<ROUTE extends LiveRoute<any>>(routes: ROUTE[]) {
+  return routes.map(asActiveRoute);
+}
+
+export function asActiveRoute<ROUTE extends LiveRoute<any>>(route: ROUTE) {
+  return route as ActiveLiveRoute<Required<ROUTE>>;
+}
+
+/** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
+export function findActiveRoute<ROUTE extends LiveRoute<any>>(routes: ROUTE[]) {
+  return asActiveRoutes(routes).find(({ isActive }) => isActive);
 }

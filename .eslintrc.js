@@ -38,7 +38,7 @@ module.exports = {
     ],
   },
   plugins: ['only-warn'],
-  extends: [ 'standard-typescript-prettier', ],
+  extends: ['standard-typescript-prettier'],
   parserOptions: {
     ecmaVersion: 2019,
     sourceType: 'module',
@@ -47,4 +47,4 @@ module.exports = {
     tsconfigRootDir: __dirname,
   },
   settings: { react: { version: 'detect' } },
-}
+};

@@ -3,16 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.XRouter = exports.XRoute = void 0;
+exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
 const history_1 = require("history");
 const isEqual_1 = __importDefault(require("lodash/isEqual"));
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
-/** Create a typed route config */
+/** Create a typed route config object */
 const XRoute = (key, resource, params) => ({ key, resource, params });
 exports.XRoute = XRoute;
 /**
- * The Mobx class which holds routes.
+ * The Mobx class which handles routing over History.
  */
 class XRouter {
     constructor(definition, history = history_1.createHashHistory()) {
@@ -132,7 +132,7 @@ class XRouter {
                 push: (p) => this.push(route, p),
                 replace: (p) => this.replace(route, p),
             };
-            return { ...routes, [key]: newRoute, };
+            return { ...routes, [key]: newRoute };
         }, {});
     }
     /** The currently active route. */
@@ -143,7 +143,7 @@ class XRouter {
         for (const { key } of this.definition) {
             const route = this.routes[key];
             if (route.isActive)
-                return route;
+                return asActiveRoute(route);
         }
     }
     push(route, params) {
@@ -171,3 +171,17 @@ class XRouter {
     }
 }
 exports.XRouter = XRouter;
+/** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
+function asActiveRoutes(routes) {
+    return routes.map(asActiveRoute);
+}
+exports.asActiveRoutes = asActiveRoutes;
+function asActiveRoute(route) {
+    return route;
+}
+exports.asActiveRoute = asActiveRoute;
+/** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
+function findActiveRoute(routes) {
+    return asActiveRoutes(routes).find(({ isActive }) => isActive);
+}
+exports.findActiveRoute = findActiveRoute;

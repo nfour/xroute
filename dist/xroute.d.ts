@@ -1,18 +1,15 @@
 import { History, Location } from 'history';
-import { Union } from 'ts-toolbelt';
-/** Create a typed route config */
+/** Create a typed route config object */
 export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAMS extends {}>(key: KEY, resource: RESOURCE, params: PARAMS) => {
     key: KEY;
     resource: RESOURCE;
     params: PARAMS;
 };
 /**
- * The Mobx class which holds routes.
+ * The Mobx class which handles routing over History.
  */
 export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[number]['key'], ROUTES extends {
-    [KEY in KEYS]: LiveRoute<Union.Select<LIST[number], {
-        key: KEY;
-    }>>;
+    [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
 }> {
     location: Location;
     definition: LIST;
@@ -44,7 +41,7 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
      */
     get routes(): ROUTES;
     /** The currently active route. */
-    get route(): ROUTES[KEYS] | undefined;
+    get route(): ActiveLiveRoute<Required<ROUTES[KEYS]>> | undefined;
     /** history.push() a given route */
     push<ROUTE extends RouteConfig>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.push(pathname) */
@@ -80,3 +77,17 @@ export interface LiveRoute<ITEM extends RouteConfig> {
     push(params: ITEM['params']): void;
     replace(params: ITEM['params']): void;
 }
+export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
+    params: ITEM['params'];
+    resource: ITEM['resource'];
+    key: ITEM['key'];
+    path: string;
+    index: number;
+    hash: string;
+    isActive: true;
+}
+/** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
+export declare function asActiveRoutes<ROUTE extends LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<ROUTE>>[];
+export declare function asActiveRoute<ROUTE extends LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<ROUTE>>;
+/** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
+export declare function findActiveRoute<ROUTE extends LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<ROUTE>> | undefined;
