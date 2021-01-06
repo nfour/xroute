@@ -13,6 +13,9 @@ Mobx powered `History` router, with types.
 
 - [x] Requires >= Mobx@6
 
+> See the [source for Typescript definition](./xroute.ts)
+> See the [stories for usage examples](./xroute.stories.ts)
+
 ```tsx
 import { XRoute } from 'xroute'
 
@@ -73,15 +76,15 @@ router.route?.push({ language: 'da' })
 
 // Re-use the current language
 // Navigates to: /da/
-router.routes.home.push({ language: router.route?.params?.language })
+router.routes.home.push({ language: router.route?.params.language })
 
 // Provide a route object to route from anywhere:
 // Navigate to: /de/user/55
 router.push(UserProfileRoute, { language: 'de', userId: '55' })
 
 // Access route properties:
-router.route?.params?.userId // => '55'
-router.route?.params?.language // => 'de'
+router.route?.params.userId // => '55'
+router.route?.params.language // => 'de'
 
 // Use routes in your own mobx models:
 
@@ -103,8 +106,13 @@ class UserProfilePage {
   }
 
   setUserId(userId: string) {
-    // Notice we get to re-use the `language` parameter
-    this.route.push({ ...this.route.params, userId })
+    // Uses current route params
+    this.route.push({ userId })
+    //
+    // or
+    //
+    // Explicitly use previous params...
+    this.route.pushExact({ ...this.route.params, userId })
   }
 }
 
