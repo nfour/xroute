@@ -141,6 +141,8 @@ class XRouter {
                 pushExact: (p) => this.push(route, p),
                 replace: (p) => this.replace(route, mergeParams(p)),
                 replaceExact: (p) => this.replace(route, p),
+                toPath: (p) => this.toPath(route, mergeParams(p)),
+                toPathExact: (p) => this.toPath(route, p),
             };
             return { ...routes, [key]: newRoute };
         }, {});
@@ -154,6 +156,15 @@ class XRouter {
             const route = this.routes[key];
             if (route.isActive)
                 return asActiveRoute(route);
+        }
+    }
+    toPath(route, params) {
+        const { resource, key } = route;
+        try {
+            return path_to_regexp_1.compile(resource)({ ...params }) || '/';
+        }
+        catch (error) {
+            throw new Error(`INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`);
         }
     }
     push(route, params) {
@@ -170,14 +181,8 @@ class XRouter {
         if (typeof route === 'string') {
             return this.history[method](route);
         }
-        const { resource, key } = route;
-        try {
-            const path = path_to_regexp_1.compile(resource)({ ...params }) || '/';
-            this.history[method](path);
-        }
-        catch (error) {
-            throw new Error(`INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`);
-        }
+        const path = this.toPath(route, params);
+        this.history[method](path);
     }
 }
 exports.XRouter = XRouter;

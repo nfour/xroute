@@ -122,6 +122,8 @@ export class XRouter<
         pushExact: (p: {}) => this.push(route, p),
         replace: (p: {}) => this.replace(route, mergeParams(p)),
         replaceExact: (p: {}) => this.replace(route, p),
+        toPath: (p: {}) => this.toPath(route, mergeParams(p)),
+        toPathExact: (p: {}) => this.toPath(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -137,6 +139,18 @@ export class XRouter<
       const route = this.routes[key as KEYS];
 
       if (route.isActive) return asActiveRoute(route);
+    }
+  }
+
+  toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']) {
+    const { resource, key } = route;
+
+    try {
+      return compile(resource)({ ...params }) || '/';
+    } catch (error) {
+      throw new Error(
+        `INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`,
+      );
     }
   }
 
@@ -187,17 +201,9 @@ export class XRouter<
       return this.history[method](route);
     }
 
-    const { resource, key } = route;
+    const path = this.toPath(route, params);
 
-    try {
-      const path = compile(resource)({ ...params }) || '/';
-
-      this.history[method](path);
-    } catch (error) {
-      throw new Error(
-        `INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`,
-      );
-    }
+    this.history[method](path);
   }
 }
 
@@ -217,11 +223,14 @@ export interface LiveRoute<ITEM extends RouteConfig> {
   path?: string;
   isActive: boolean;
 
-  replaceExact(params: ITEM['params']): void;
+  push(params?: Partial<ITEM['params']>): void;
   pushExact(params: ITEM['params']): void;
 
-  push(params?: Partial<ITEM['params']>): void;
   replace(params?: Partial<ITEM['params']>): void;
+  replaceExact(params: ITEM['params']): void;
+
+  toPath(params?: Partial<ITEM['params']>): string;
+  toPathExact(params: ITEM['params']): string;
 }
 
 export interface ActiveLiveRoute<ITEM extends RouteConfig>

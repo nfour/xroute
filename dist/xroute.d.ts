@@ -42,6 +42,7 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
     get routes(): ROUTES;
     /** The currently active route. */
     get route(): ActiveLiveRoute<Required<ROUTES[KEYS]>> | undefined;
+    toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): string;
     /** history.push() a given route */
     push<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.push(pathname) */
@@ -74,10 +75,12 @@ export interface LiveRoute<ITEM extends RouteConfig> {
     index?: number;
     path?: string;
     isActive: boolean;
-    replaceExact(params: ITEM['params']): void;
-    pushExact(params: ITEM['params']): void;
     push(params?: Partial<ITEM['params']>): void;
+    pushExact(params: ITEM['params']): void;
     replace(params?: Partial<ITEM['params']>): void;
+    replaceExact(params: ITEM['params']): void;
+    toPath(params?: Partial<ITEM['params']>): string;
+    toPathExact(params: ITEM['params']): string;
 }
 export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
     params: ITEM['params'];

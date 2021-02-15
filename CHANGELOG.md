@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.0
+
+- Added `toPath`, which generates a pathname.
+  - `xrouter.routes.myRoute.toPath({ someParam: 'foo' }) // "/blahblah/foo"`
+  - `xrouter.toPath(MyFancyRoute, { someParam: 'foo' }) // "/blahblah/foo"`
 
 ## 2.0.0
 

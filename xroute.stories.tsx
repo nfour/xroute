@@ -6,28 +6,56 @@ export default {
   title: 'XRouter',
 };
 
+const validLanguages = ['en', 'da', 'de'] as const;
+const languageParam = `:language(${validLanguages.join('|')})`;
+
+type ILanguage = typeof validLanguages[number];
+
+const FooRoute = XRoute(
+  'foo',
+  `/${languageParam}/foo`,
+  {} as { language: ILanguage },
+);
+const BazRoute = XRoute(
+  'baz',
+  `/${languageParam}/baz`,
+  {} as { language: ILanguage },
+);
+
+const DefaultRoute = XRoute(
+  'default',
+  '/:language?',
+  {} as { language?: ILanguage },
+);
+
+export const to_path = () => {
+  const Component = () => {
+    const [router] = React.useState(
+      () => new XRouter([FooRoute, BazRoute, DefaultRoute]),
+    );
+
+    return (
+      <ul>
+        <li>
+          Foo route path, german:{' '}
+          <textarea>{router.routes.foo.toPath({ language: 'de' })}</textarea>
+        </li>
+        <li>
+          Foo route path, en:{' '}
+          <textarea>{router.routes.foo.toPath({ language: 'en' })}</textarea>
+        </li>
+      </ul>
+    );
+  };
+
+  return (
+    <>
+      <Component />
+    </>
+  );
+};
+
 export const Shared_Language_Params = () => {
-  const validLanguages = ['en', 'da', 'de'] as const;
-  const languageParam = `:language(${validLanguages.join('|')})`;
-
-  type ILanguage = typeof validLanguages[number];
-
-  const FooRoute = XRoute(
-    'foo',
-    `/${languageParam}/foo`,
-    {} as { language: ILanguage },
-  );
-  const BazRoute = XRoute(
-    'baz',
-    `/${languageParam}/baz`,
-    {} as { language: ILanguage },
-  );
-
-  const DefaultRoute = XRoute(
-    'default',
-    '/:language?',
-    {} as { language?: ILanguage },
-  );
   const DemoComponent = observer(() => {
     /** Create the router for the demo with the route list */
     const [router] = React.useState(
