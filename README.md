@@ -66,6 +66,9 @@ autorun(() => {
 // Navigate to: /en
 router.routes.home.push({ language: 'en' })
 
+// Get the pathname, eg. to put inside an <a href="" />
+router.routes.home.toPath({ language: 'da' }) // "/da"
+
 // Navigates to: /en/user/11
 router.routes.userProfile.push({ language: 'en', userId: '11' })
 
