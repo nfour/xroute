@@ -197,6 +197,6 @@ function asActiveRoute(route) {
 exports.asActiveRoute = asActiveRoute;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
 function findActiveRoute(routes) {
-    return asActiveRoutes(routes).find(({ isActive }) => isActive);
+    return asActiveRoutes(routes).find((r) => r === null || r === void 0 ? void 0 : r.isActive);
 }
 exports.findActiveRoute = findActiveRoute;

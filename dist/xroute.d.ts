@@ -41,7 +41,7 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
      */
     get routes(): ROUTES;
     /** The currently active route. */
-    get route(): ActiveLiveRoute<Required<ROUTES[KEYS]>> | undefined;
+    get route(): ActiveLiveRoute<Required<NonNullable<ROUTES[KEYS]>>> | undefined;
     toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): string;
     /** history.push() a given route */
     push<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
@@ -92,7 +92,7 @@ export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITE
     isActive: true;
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export declare function asActiveRoutes<ROUTE extends LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<ROUTE>>[];
-export declare function asActiveRoute<ROUTE extends LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<ROUTE>>;
+export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<any>>(routes: ROUTE[]): (ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined)[];
+export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export declare function findActiveRoute<ROUTE extends LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<ROUTE>> | undefined;
+export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;

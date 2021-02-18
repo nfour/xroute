@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 3.0.1
+
+- Make `findActiveRoute` and other utilities allow for undefined items
+  
 ## 3.0.0
 
 - Added `toPath`, which generates a pathname.

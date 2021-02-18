@@ -245,15 +245,21 @@ export interface ActiveLiveRoute<ITEM extends RouteConfig>
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export function asActiveRoutes<ROUTE extends LiveRoute<any>>(routes: ROUTE[]) {
+export function asActiveRoutes<ROUTE extends undefined | LiveRoute<any>>(
+  routes: ROUTE[],
+) {
   return routes.map(asActiveRoute);
 }
 
-export function asActiveRoute<ROUTE extends LiveRoute<any>>(route: ROUTE) {
-  return route as ActiveLiveRoute<Required<ROUTE>>;
+export function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
+  route: ROUTE,
+) {
+  return route as undefined | ActiveLiveRoute<Required<NonNullable<ROUTE>>>;
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export function findActiveRoute<ROUTE extends LiveRoute<any>>(routes: ROUTE[]) {
-  return asActiveRoutes(routes).find(({ isActive }) => isActive);
+export function findActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
+  routes: ROUTE[],
+) {
+  return asActiveRoutes(routes).find((r) => r?.isActive);
 }
