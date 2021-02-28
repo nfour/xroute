@@ -10,6 +10,7 @@ module.exports = {
     '@typescript-eslint/ban-types': ['off'],
     '@typescript-eslint/explicit-module-boundary-types': ['off'],
     '@typescript-eslint/no-empty-interface': ['off'],
+    '@typescript-eslint/no-unnecessary-type-assertion': ['error'],
 
     // https://eslint.org/docs/rules/padding-line-between-statements
     'padding-line-between-statements': [
