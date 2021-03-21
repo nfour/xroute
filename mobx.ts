@@ -2,7 +2,16 @@ import { History } from 'history';
 import { action, computed, makeObservable, observable, reaction } from 'mobx';
 import { LiveRoute, RouteConfig, XRouter } from './XRouter';
 
-export * from './XRouter';
+export {
+  ActiveLiveRoute,
+  LiveRoute,
+  ReactionFn,
+  RouteConfig,
+  XRoute,
+  asActiveRoute,
+  asActiveRoutes,
+  findActiveRoute,
+} from './XRouter';
 
 /** A Mobx configured XRouter */
 export class XRouterMobx<

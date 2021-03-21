@@ -1,6 +1,16 @@
 # Changelog
 
 
+## 5.0.0
+
+### Breaking
+- Made `mobx` integration optional.
+- `XRouter` is now a generic class and can be configured for any reactive framework.
+- `mobx` configuration is now exported from `xroute/mobx`
+
+### Migration
+- `mobx` users can migrate with this import: `import { XRouterMobx, XRoute, findActiveRoute, ... } from 'xroute/mobx'`
+
 ## 4.0.0
 
 - Add `mjs` modules from `./dist/es/`
