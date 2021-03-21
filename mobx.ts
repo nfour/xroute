@@ -22,7 +22,7 @@ export class XRouterMobx<
   },
   ROUTE_CONFIG extends RouteConfig
 > extends XRouter<LIST, KEYS, ROUTES, ROUTE_CONFIG> {
-  constructor(public definition: LIST, protected history: History) {
+  constructor(public definition: LIST, public history: History) {
     super(definition, history, reaction);
 
     makeObservable(this, {

@@ -1,10 +1,10 @@
 import { createMemoryHistory } from 'history';
 import { observer } from 'mobx-react-lite';
 import * as React from 'react';
-import { XRoute, XRouterMobx } from './mobx';
+import { XRoute, XRouterMobx } from '../../mobx';
 
 export default {
-  title: 'XRouterMobx',
+  title: 'XRouter Mobx',
 };
 
 const validLanguages = ['en', 'da', 'de'] as const;
@@ -60,7 +60,7 @@ export const to_path = () => {
   );
 };
 
-export const Shared_Language_Params = () => {
+export const shared_language_params = () => {
   const DemoComponent = observer(() => {
     /** Create the router for the demo with the route list */
     const [router] = React.useState(

@@ -17,6 +17,8 @@ export const XRoute = <
   params: PARAMS,
 ) => ({ key, resource, params });
 
+export interface IRouter extends XRouter<any, any, any, any> {}
+
 /**
  * Declarative routing via the History interface.
  */
@@ -28,15 +30,24 @@ export class XRouter<
   },
   ROUTE_CONFIG extends RouteConfig
 > {
-  location!: Location;
+  location: Location = {
+    hash: '',
+    key: '',
+    pathname: '',
+    search: '',
+    state: {},
+  };
+
+  // history!: History;
   stopReactingToHistory?(): void;
   stopReactingToLocation?(): void;
 
-  constructor(
-    public definition: LIST,
-    protected history: History,
-    reaction: ReactionFn,
-  ) {
+  constructor(public definition: LIST, public history: History) {
+    this.definition = definition;
+    this.history = history;
+  }
+
+  useHistory(reaction: ReactionFn) {
     this.setLocation(this.history.location);
 
     this.stopReactingToHistory = this.history.listen(({ location }) =>

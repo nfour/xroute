@@ -1,6 +1,6 @@
 
 module.exports = {
-  stories: ['../xroute.stories.tsx'],
+  stories: ['../stories/**/*.stories.tsx'],
   typescript: {
     check: true,
     reactDocgen: undefined,
