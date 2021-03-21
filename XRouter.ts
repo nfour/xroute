@@ -1,7 +1,10 @@
-import { createHashHistory, History, Location } from 'history';
+import { History, Location } from 'history';
 import isEqual from 'lodash-es/isEqual';
-import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
+
+export interface ReactionFn {
+  (reactTo: () => any, onChange: (v: any) => any): () => any;
+}
 
 /** Create a typed route config object */
 export const XRoute = <
@@ -15,7 +18,7 @@ export const XRoute = <
 ) => ({ key, resource, params });
 
 /**
- * The Mobx class which handles routing over History.
+ * XRouter routing via the History interface.
  */
 export class XRouter<
   LIST extends RouteConfig[],
@@ -26,46 +29,39 @@ export class XRouter<
   ROUTE_CONFIG extends RouteConfig
 > {
   location!: Location;
-  dispose: () => void;
+  stopReactingToHistory?(): void;
+  stopReactingToLocation?(): void;
 
   constructor(
     public definition: LIST,
-    protected history: History = createHashHistory(),
+    protected history: History,
+    reaction: ReactionFn,
   ) {
-    this.definition = definition;
-    this.history = history;
+    this.setLocation(this.history.location);
 
-    const setLocation = (location: Location) => {
-      if (isEqual(this.location, location)) return;
+    this.stopReactingToHistory = this.history.listen(({ location }) =>
+      this.setLocation(location),
+    );
 
-      this.location = { ...location };
-    };
-
-    const setHistory = (location: Location) => {
-      if (isEqual(this.history.location, location)) return;
-
-      this.history.replace({ ...location });
-    };
-
-    const stopSettingHistory = reaction(
+    this.stopReactingToLocation = reaction(
       () => this.location,
       (location) => {
-        setHistory(location);
+        if (isEqual(this.history.location, location)) return;
+
+        this.history.replace({ ...location });
       },
     );
+  }
 
-    const stopSettingLocation = history.listen(({ location }) =>
-      setLocation(location),
-    );
+  setLocation(location: Location) {
+    if (isEqual(this.location, location)) return;
 
-    this.dispose = () => {
-      stopSettingLocation();
-      stopSettingHistory();
-    };
+    this.location = { ...location };
+  }
 
-    setLocation(history.location);
-
-    makeAutoObservable(this);
+  dispose() {
+    this.stopReactingToHistory?.();
+    this.stopReactingToLocation?.();
   }
 
   /**
@@ -92,7 +88,7 @@ export class XRouter<
    * })
    */
   get routes(): ROUTES {
-    const { pathname = '/', hash, search } = this.location ?? {};
+    const { pathname = '/', hash, search } = this.location;
 
     return this.definition.reduce((routes, _route) => {
       const route = _route as ROUTE_CONFIG;

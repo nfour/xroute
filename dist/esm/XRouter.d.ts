@@ -1,4 +1,7 @@
 import { History, Location } from 'history';
+export interface ReactionFn {
+    (reactTo: () => any, onChange: (v: any) => any): () => any;
+}
 /** Create a typed route config object */
 export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAMS extends {}>(key: KEY, resource: RESOURCE, params: PARAMS) => {
     key: KEY;
@@ -6,7 +9,7 @@ export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAM
     params: PARAMS;
 };
 /**
- * The Mobx class which handles routing over History.
+ * XRouter routing via the History interface.
  */
 export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[number]['key'], ROUTES extends {
     [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
@@ -14,8 +17,11 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
     definition: LIST;
     protected history: History;
     location: Location;
-    dispose: () => void;
-    constructor(definition: LIST, history?: History);
+    stopReactingToHistory?(): void;
+    stopReactingToLocation?(): void;
+    constructor(definition: LIST, history: History, reaction: ReactionFn);
+    setLocation(location: Location): void;
+    dispose(): void;
     /**
      * A map of routes `{ [route.key]: route }`
      *

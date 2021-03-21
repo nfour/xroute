@@ -5,9 +5,9 @@
   "files": [
     "dist/*"
   ],
-  "main": "./dist/xroute.js",
-  "module": "./dist/es/xroute.js",
-  "types": "./dist/es/xroute.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
     "dist": "yarn dist:cjs && yarn dist:esm",
     "dist:cjs": "tsc -p tsconfig.cjs.json",
@@ -16,7 +16,9 @@
     "dev": "start-storybook"
   },
   "peerDependencies": {
-    "history": ">=5",
+    "history": ">=5"
+  },
+  "optionalDependencies": {
     "mobx": ">=6"
   },
   "dependencies": {

@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist/es"
+    "module": "ES2020",
+    "outDir": "./dist/esm"
   },
-  "include": ["./xroute.ts"]
+  "include": [
+    "./*.ts"
+  ]
 }

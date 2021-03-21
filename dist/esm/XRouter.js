@@ -1,18 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
-const history_1 = require("history");
-const isEqual_1 = require("lodash-es/isEqual");
-const mobx_1 = require("mobx");
-const path_to_regexp_1 = require("path-to-regexp");
+import isEqual from 'lodash-es/isEqual';
+import { compile, match } from 'path-to-regexp';
 /** Create a typed route config object */
-const XRoute = (key, resource, params) => ({ key, resource, params });
-exports.XRoute = XRoute;
+export const XRoute = (key, resource, params) => ({ key, resource, params });
 /**
- * The Mobx class which handles routing over History.
+ * XRouter routing via the History interface.
  */
-class XRouter {
-    constructor(definition, history = history_1.createHashHistory()) {
+export class XRouter {
+    constructor(definition, history, reaction) {
         Object.defineProperty(this, "definition", {
             enumerable: true,
             configurable: true,
@@ -26,12 +20,6 @@ class XRouter {
             value: history
         });
         Object.defineProperty(this, "location", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "dispose", {
             enumerable: true,
             configurable: true,
             writable: true,
@@ -61,28 +49,23 @@ class XRouter {
             writable: true,
             value: (...args) => this.history.block(...args)
         });
-        this.definition = definition;
-        this.history = history;
-        const setLocation = (location) => {
-            if (isEqual_1.default(this.location, location))
-                return;
-            this.location = { ...location };
-        };
-        const setHistory = (location) => {
-            if (isEqual_1.default(this.history.location, location))
+        this.setLocation(this.history.location);
+        this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
+        this.stopReactingToLocation = reaction(() => this.location, (location) => {
+            if (isEqual(this.history.location, location))
                 return;
             this.history.replace({ ...location });
-        };
-        const stopSettingHistory = mobx_1.reaction(() => this.location, (location) => {
-            setHistory(location);
         });
-        const stopSettingLocation = history.listen(({ location }) => setLocation(location));
-        this.dispose = () => {
-            stopSettingLocation();
-            stopSettingHistory();
-        };
-        setLocation(history.location);
-        mobx_1.makeAutoObservable(this);
+    }
+    setLocation(location) {
+        if (isEqual(this.location, location))
+            return;
+        this.location = { ...location };
+    }
+    dispose() {
+        var _a, _b;
+        (_a = this.stopReactingToHistory) === null || _a === void 0 ? void 0 : _a.call(this);
+        (_b = this.stopReactingToLocation) === null || _b === void 0 ? void 0 : _b.call(this);
     }
     /**
      * A map of routes `{ [route.key]: route }`
@@ -108,12 +91,11 @@ class XRouter {
      * })
      */
     get routes() {
-        var _a;
-        const { pathname = '/', hash, search } = (_a = this.location) !== null && _a !== void 0 ? _a : {};
+        const { pathname = '/', hash, search } = this.location;
         return this.definition.reduce((routes, _route) => {
             const route = _route;
             const { key, resource } = route;
-            const matched = path_to_regexp_1.match(resource, {
+            const matched = match(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
             })(pathname);
@@ -158,7 +140,7 @@ class XRouter {
     toPath(route, params) {
         const { resource, key } = route;
         try {
-            return path_to_regexp_1.compile(resource)({ ...params }) || '/';
+            return compile(resource)({ ...params }) || '/';
         }
         catch (error) {
             throw new Error(`INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`);
@@ -182,18 +164,14 @@ class XRouter {
         this.history[method](path);
     }
 }
-exports.XRouter = XRouter;
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-function asActiveRoutes(routes) {
+export function asActiveRoutes(routes) {
     return routes.map(asActiveRoute);
 }
-exports.asActiveRoutes = asActiveRoutes;
-function asActiveRoute(route) {
+export function asActiveRoute(route) {
     return route;
 }
-exports.asActiveRoute = asActiveRoute;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-function findActiveRoute(routes) {
+export function findActiveRoute(routes) {
     return asActiveRoutes(routes).find((r) => r === null || r === void 0 ? void 0 : r.isActive);
 }
-exports.findActiveRoute = findActiveRoute;
