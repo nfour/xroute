@@ -2,6 +2,9 @@ import { History } from 'history';
 import { action, computed, makeObservable, observable, reaction } from 'mobx';
 import { LiveRoute, RouteConfig, XRouter } from './XRouter';
 
+export * from './XRouter';
+
+/** A Mobx configured XRouter */
 export class XRouterMobx<
   LIST extends RouteConfig[],
   KEYS extends LIST[number]['key'],

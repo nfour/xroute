@@ -18,7 +18,7 @@ export const XRoute = <
 ) => ({ key, resource, params });
 
 /**
- * XRouter routing via the History interface.
+ * Declarative routing via the History interface.
  */
 export class XRouter<
   LIST extends RouteConfig[],

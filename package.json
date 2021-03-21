@@ -8,6 +8,7 @@
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
+  "exports": {},
   "scripts": {
     "dist": "yarn dist:cjs && yarn dist:esm",
     "dist:cjs": "tsc -p tsconfig.cjs.json",
