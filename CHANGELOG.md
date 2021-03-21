@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 4.0.0
+
+- Add `mjs` modules from `./dist/es/`
+  
 ## 3.1.0
 
 - Make `findActiveRoute` and other utilities allow for undefined items
