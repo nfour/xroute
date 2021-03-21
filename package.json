@@ -17,13 +17,13 @@
     "mobx": ">=6"
   },
   "dependencies": {
-    "lodash": "~4.17.20",
+    "lodash-es": "~4.17.21",
     "path-to-regexp": "^6.2.0",
     "ts-toolbelt": "^8.0.7"
   },
   "devDependencies": {
     "@storybook/react": "^6.1.10",
-    "@types/lodash": "~4.14.166",
+    "@types/lodash-es": "~4.17.4",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@typescript-eslint/eslint-plugin": "^4.15.2",

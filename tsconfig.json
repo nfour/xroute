@@ -10,7 +10,6 @@
     "lib": [ "dom", "es2018" ],
     "jsx": "react",
     "declaration": true,
-    "esModuleInterop": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": true
   },
