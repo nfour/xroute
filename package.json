@@ -6,9 +6,12 @@
     "dist/*"
   ],
   "main": "./dist/xroute.js",
-  "types": "./dist/xroute.d.ts",
+  "module": "./dist/es/xroute.js",
+  "types": "./dist/es/xroute.d.ts",
   "scripts": {
-    "dist": "tsc -p tsconfig.production.json",
+    "dist": "yarn dist:cjs && yarn dist:esm",
+    "dist:cjs": "tsc -p tsconfig.cjs.json",
+    "dist:esm": "tsc -p tsconfig.esm.json",
     "dist:watch": "yarn -s dist --watch",
     "dev": "start-storybook"
   },
