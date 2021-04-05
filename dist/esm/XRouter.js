@@ -1,12 +1,13 @@
 import isEqual from 'lodash-es/isEqual';
+import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 /** Create a typed route config object */
 export const XRoute = (key, resource, params) => ({ key, resource, params });
 /**
- * XRouter routing via the History interface.
+ * Declarative routing via the History interface.
  */
 export class XRouter {
-    constructor(definition, history, reaction) {
+    constructor(definition, history) {
         Object.defineProperty(this, "definition", {
             enumerable: true,
             configurable: true,
@@ -23,7 +24,13 @@ export class XRouter {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: void 0
+            value: {
+                hash: '',
+                key: '',
+                pathname: '',
+                search: '',
+                state: {},
+            }
         });
         Object.defineProperty(this, "go", {
             enumerable: true,
@@ -49,6 +56,12 @@ export class XRouter {
             writable: true,
             value: (...args) => this.history.block(...args)
         });
+        this.definition = definition;
+        this.history = history;
+        makeAutoObservable(this);
+        this.startReacting();
+    }
+    startReacting() {
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
         this.stopReactingToLocation = reaction(() => this.location, (location) => {
@@ -91,7 +104,10 @@ export class XRouter {
      * })
      */
     get routes() {
+        // TODO: we can probably avoid redoing this entire thing every time anything changes lol.
         const { pathname = '/', hash, search } = this.location;
+        // TODO: Should it be configurable to allow multiple matches?
+        let isAlreadyMatched = false;
         return this.definition.reduce((routes, _route) => {
             const route = _route;
             const { key, resource } = route;
@@ -107,8 +123,11 @@ export class XRouter {
                     ...p,
                 });
             };
+            const isActive = isAlreadyMatched === false && index !== undefined;
+            if (isActive)
+                isAlreadyMatched = true;
             const newRoute = {
-                isActive: index !== undefined,
+                isActive,
                 key,
                 index,
                 params,

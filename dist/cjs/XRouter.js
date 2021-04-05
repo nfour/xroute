@@ -2,15 +2,16 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
 const isEqual_1 = require("lodash-es/isEqual");
+const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 /** Create a typed route config object */
 const XRoute = (key, resource, params) => ({ key, resource, params });
 exports.XRoute = XRoute;
 /**
- * XRouter routing via the History interface.
+ * Declarative routing via the History interface.
  */
 class XRouter {
-    constructor(definition, history, reaction) {
+    constructor(definition, history) {
         Object.defineProperty(this, "definition", {
             enumerable: true,
             configurable: true,
@@ -27,7 +28,13 @@ class XRouter {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: void 0
+            value: {
+                hash: '',
+                key: '',
+                pathname: '',
+                search: '',
+                state: {},
+            }
         });
         Object.defineProperty(this, "go", {
             enumerable: true,
@@ -53,9 +60,15 @@ class XRouter {
             writable: true,
             value: (...args) => this.history.block(...args)
         });
+        this.definition = definition;
+        this.history = history;
+        mobx_1.makeAutoObservable(this);
+        this.startReacting();
+    }
+    startReacting() {
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
-        this.stopReactingToLocation = reaction(() => this.location, (location) => {
+        this.stopReactingToLocation = mobx_1.reaction(() => this.location, (location) => {
             if (isEqual_1.default(this.history.location, location))
                 return;
             this.history.replace({ ...location });
@@ -95,7 +108,10 @@ class XRouter {
      * })
      */
     get routes() {
+        // TODO: we can probably avoid redoing this entire thing every time anything changes lol.
         const { pathname = '/', hash, search } = this.location;
+        // TODO: Should it be configurable to allow multiple matches?
+        let isAlreadyMatched = false;
         return this.definition.reduce((routes, _route) => {
             const route = _route;
             const { key, resource } = route;
@@ -111,8 +127,11 @@ class XRouter {
                     ...p,
                 });
             };
+            const isActive = isAlreadyMatched === false && index !== undefined;
+            if (isActive)
+                isAlreadyMatched = true;
             const newRoute = {
-                isActive: index !== undefined,
+                isActive,
                 key,
                 index,
                 params,

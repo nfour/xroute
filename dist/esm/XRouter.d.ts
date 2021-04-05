@@ -8,18 +8,21 @@ export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAM
     resource: RESOURCE;
     params: PARAMS;
 };
+export interface IRouter extends XRouter<any, any, any, any> {
+}
 /**
- * XRouter routing via the History interface.
+ * Declarative routing via the History interface.
  */
 export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[number]['key'], ROUTES extends {
     [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
 }, ROUTE_CONFIG extends RouteConfig> {
     definition: LIST;
-    protected history: History;
+    history: History;
     location: Location;
     stopReactingToHistory?(): void;
     stopReactingToLocation?(): void;
-    constructor(definition: LIST, history: History, reaction: ReactionFn);
+    constructor(definition: LIST, history: History);
+    startReacting(): void;
     setLocation(location: Location): void;
     dispose(): void;
     /**
@@ -54,8 +57,8 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
     /** Equal to history.push(pathname) */
     push(pathname: string): void;
     /** history.replace() a given route */
-    replace<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
     /** Equal to history.replace(pathname) */
+    replace<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
     replace(pathname: string): void;
     go: History['go'];
     back: History['back'];
