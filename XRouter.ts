@@ -1,5 +1,6 @@
 import { History, Location } from 'history';
 import isEqual from 'lodash-es/isEqual';
+import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 
 export interface ReactionFn {
@@ -38,16 +39,19 @@ export class XRouter<
     state: {},
   };
 
-  // history!: History;
   stopReactingToHistory?(): void;
   stopReactingToLocation?(): void;
 
   constructor(public definition: LIST, public history: History) {
     this.definition = definition;
     this.history = history;
+
+    makeAutoObservable(this);
+
+    this.startReacting();
   }
 
-  useHistory(reaction: ReactionFn) {
+  startReacting() {
     this.setLocation(this.history.location);
 
     this.stopReactingToHistory = this.history.listen(({ location }) =>
@@ -99,7 +103,11 @@ export class XRouter<
    * })
    */
   get routes(): ROUTES {
+    // TODO: we can probably avoid redoing this entire thing every time anything changes lol.
     const { pathname = '/', hash, search } = this.location;
+
+    // TODO: Should it be configurable to allow multiple matches?
+    let isAlreadyMatched = false;
 
     return this.definition.reduce((routes, _route) => {
       const route = _route as ROUTE_CONFIG;
@@ -116,8 +124,12 @@ export class XRouter<
         ...p,
       });
 
+      const isActive = isAlreadyMatched === false && index !== undefined;
+
+      if (isActive) isAlreadyMatched = true;
+
       const newRoute: LiveRoute<typeof route> = {
-        isActive: index !== undefined,
+        isActive,
         key,
         index,
         params,
@@ -169,7 +181,6 @@ export class XRouter<
 
   /** Equal to history.push(pathname) */
   push(pathname: string): void;
-
   push<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE | string,
     params?: ROUTE['params'],
@@ -178,14 +189,14 @@ export class XRouter<
   }
 
   /** history.replace() a given route */
+
+  /** Equal to history.replace(pathname) */
   replace<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE,
     params?: ROUTE['params'],
   ): void;
 
-  /** Equal to history.replace(pathname) */
   replace(pathname: string): void;
-
   replace(route: ROUTE_CONFIG | string, params?: {}) {
     this.navigate(route, params, 'replace');
   }

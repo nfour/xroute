@@ -1,7 +1,7 @@
 import { createMemoryHistory } from 'history';
 import { observer } from 'mobx-react-lite';
 import * as React from 'react';
-import { XRoute, XRouterMobx } from '../../mobx';
+import { XRoute, XRouter } from '../XRouter';
 
 export default {
   title: 'XRouter Mobx',
@@ -33,10 +33,7 @@ export const to_path = () => {
   const Component = () => {
     const [router] = React.useState(
       () =>
-        new XRouterMobx(
-          [FooRoute, BazRoute, DefaultRoute],
-          createMemoryHistory(),
-        ),
+        new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
     );
 
     return (
@@ -65,10 +62,7 @@ export const shared_language_params = () => {
     /** Create the router for the demo with the route list */
     const [router] = React.useState(
       () =>
-        new XRouterMobx(
-          [FooRoute, BazRoute, DefaultRoute],
-          createMemoryHistory(),
-        ),
+        new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
     );
     const activeProps = {
       style: { color: 'green', outline: '2px solid green' },
