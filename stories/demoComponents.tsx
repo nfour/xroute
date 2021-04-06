@@ -10,18 +10,18 @@ export const demoRoutes = () => {
   const FooRoute = XRoute(
     'foo',
     `/${languageParam}/foo`,
-    {} as { language: ILanguage },
+    {} as { pathname: { language: ILanguage } },
   );
   const BazRoute = XRoute(
     'baz',
     `/${languageParam}/baz`,
-    {} as { language: ILanguage },
+    {} as { pathname: { language: ILanguage } },
   );
 
   const DefaultRoute = XRoute(
     'default',
     '/:language?',
-    {} as { language?: ILanguage },
+    {} as { pathname: { language?: ILanguage } },
   );
 
   return {
@@ -83,7 +83,7 @@ export const SharedLanguageDemo = ({
               <dl>
                 <dt>
                   LANGUAGE:{' '}
-                  <b>{router.route?.params?.language || 'undefined'}</b>
+                  <b>{router.route?.pathname?.language || 'undefined'}</b>
                 </dt>
                 <dd>
                   {validLanguages.map((language) => (
@@ -112,7 +112,7 @@ export const SharedLanguageDemo = ({
                     onClick={() =>
                       router.routes.foo.push({
                         // Re-use the current route's language param or default to en
-                        language: router.route?.params?.language || 'en',
+                        language: router.route?.pathname?.language || 'en',
                       })
                     }
                   >
@@ -132,7 +132,7 @@ export const SharedLanguageDemo = ({
                   <button
                     onClick={() =>
                       router.routes.baz.push({
-                        language: router.route?.params?.language || 'en',
+                        language: router.route?.pathname?.language || 'en',
                       })
                     }
                   >
@@ -145,7 +145,7 @@ export const SharedLanguageDemo = ({
                 <dd>
                   <button
                     onClick={() =>
-                      router.routes.default.push({ ...router.route?.params })
+                      router.routes.default.push({ ...router.route?.pathname })
                     }
                   >
                     /:language/

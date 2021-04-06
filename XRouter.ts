@@ -2,6 +2,7 @@ import { History, Location } from 'history';
 import isEqual from 'lodash-es/isEqual';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
+import * as qs from 'qs';
 
 export interface ReactionFn {
   (reactTo: () => any, onChange: (v: any) => any): () => any;
@@ -11,12 +12,16 @@ export interface ReactionFn {
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
-  PARAMS extends {}
+  PARAMS extends {
+    search?: string | {};
+    pathname?: string | {};
+    hash?: string;
+  }
 >(
   key: KEY,
   resource: RESOURCE,
-  params: PARAMS,
-) => ({ key, resource, params });
+  location: PARAMS,
+) => ({ key, resource, location });
 
 export interface IRouter extends XRouter<any, any, any, any> {}
 
@@ -51,6 +56,12 @@ export class XRouter<
     this.startReacting();
   }
 
+  setLocation(location: Location) {
+    if (isEqual(this.location, location)) return;
+
+    this.location = { ...location };
+  }
+
   startReacting() {
     this.setLocation(this.history.location);
 
@@ -68,13 +79,7 @@ export class XRouter<
     );
   }
 
-  setLocation(location: Location) {
-    if (isEqual(this.location, location)) return;
-
-    this.location = { ...location };
-  }
-
-  dispose() {
+  stopReacting() {
     this.stopReactingToHistory?.();
     this.stopReactingToLocation?.();
   }
@@ -103,8 +108,7 @@ export class XRouter<
    * })
    */
   get routes(): ROUTES {
-    // TODO: we can probably avoid redoing this entire thing every time anything changes lol.
-    const { pathname = '/', hash, search } = this.location;
+    const location = this.location;
 
     // TODO: Should it be configurable to allow multiple matches?
     let isAlreadyMatched = false;
@@ -115,12 +119,12 @@ export class XRouter<
       const matched = match(resource, {
         decode: decodeURI,
         encode: encodeURI,
-      })(pathname);
+      })(location.pathname);
 
       const { index, path, params } = matched || {};
 
       const mergeParams = (p = {}) => ({
-        ...((this.route?.params as {}) ?? {}),
+        ...((this.route?.pathname as {}) ?? {}),
         ...p,
       });
 
@@ -132,16 +136,25 @@ export class XRouter<
         isActive,
         key,
         index,
-        params,
         resource,
         path,
-        hash,
-        search,
+        get pathname() {
+          return params;
+        },
+        get hash() {
+          return location.hash;
+        },
+        get search() {
+          return qs.parse(location.search ?? '');
+        },
+        get location() {
+          return location;
+        },
         push: (p: {}) => this.push(route, mergeParams(p)),
         pushExact: (p: {}) => this.push(route, p),
         replace: (p: {}) => this.replace(route, mergeParams(p)),
         replaceExact: (p: {}) => this.replace(route, p),
-        toPath: (p: {}) => this.toPath(route, mergeParams(p)),
+        toUri: (p: {}) => this.toPath(route, mergeParams(p)),
         toPathExact: (p: {}) => this.toPath(route, p),
       };
 
@@ -161,7 +174,7 @@ export class XRouter<
     }
   }
 
-  toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']) {
+  toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']) {
     const { resource, key } = route;
 
     try {
@@ -176,14 +189,14 @@ export class XRouter<
   /** history.push() a given route */
   push<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE,
-    params?: ROUTE['params'],
+    params?: ROUTE['location'],
   ): void;
 
   /** Equal to history.push(pathname) */
   push(pathname: string): void;
   push<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE | string,
-    params?: ROUTE['params'],
+    params?: ROUTE['location'],
   ) {
     this.navigate(route, params, 'push');
   }
@@ -193,7 +206,7 @@ export class XRouter<
   /** Equal to history.replace(pathname) */
   replace<ROUTE extends ROUTE_CONFIG>(
     route: ROUTE,
-    params?: ROUTE['params'],
+    params?: ROUTE['location'],
   ): void;
 
   replace(pathname: string): void;
@@ -212,7 +225,7 @@ export class XRouter<
    */
   protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(
     route: ROUTE_DEF | string,
-    params: Partial<ROUTE_DEF['params']> = {},
+    params: Partial<ROUTE_DEF['location']> = {},
     method: 'push' | 'replace' = 'push',
   ): void {
     if (typeof route === 'string') {
@@ -234,38 +247,40 @@ export type RouteConfig = ReturnType<typeof XRoute>;
 export interface LiveRoute<ITEM extends RouteConfig> {
   key: ITEM['key'];
   resource: ITEM['resource'];
-  params?: ITEM['params'];
-  hash?: string;
-  search?: string;
+  pathname?: ITEM['location']['pathname'];
+  hash?: ITEM['location']['hash'];
+  search?: ITEM['location']['search'];
   index?: number;
   path?: string;
   isActive: boolean;
+  location: any;
 
-  push(params?: Partial<ITEM['params']>): void;
-  pushExact(params: ITEM['params']): void;
+  push(params?: Partial<ITEM['location']>): void;
+  pushExact(params: ITEM['location']): void;
 
-  replace(params?: Partial<ITEM['params']>): void;
-  replaceExact(params: ITEM['params']): void;
+  replace(params?: Partial<ITEM['location']>): void;
+  replaceExact(params: ITEM['location']): void;
 
-  toPath(params?: Partial<ITEM['params']>): string;
-  toPathExact(params: ITEM['params']): string;
+  toUri(params?: Partial<ITEM['location']>): string;
+  toPathExact(params: ITEM['location']): string;
 }
 
 export interface ActiveLiveRoute<ITEM extends RouteConfig>
   extends LiveRoute<ITEM> {
-  params: ITEM['params'];
+  pathname: ITEM['location']['pathname'];
+  search: ITEM['location']['search'];
+  hash: ITEM['location']['hash'];
   resource: ITEM['resource'];
   key: ITEM['key'];
   path: string;
   index: number;
-  hash: string;
   isActive: true;
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export function asActiveRoutes<ROUTE extends undefined | LiveRoute<any>>(
-  routes: ROUTE[],
-) {
+export function asActiveRoutes<
+  ROUTE extends undefined | LiveRoute<RouteConfig>
+>(routes: ROUTE[]) {
   return routes.map(asActiveRoute);
 }
 
@@ -276,8 +291,8 @@ export function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export function findActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
-  routes: ROUTE[],
-) {
+export function findActiveRoute<
+  ROUTE extends undefined | LiveRoute<RouteConfig>
+>(routes: ROUTE[]) {
   return asActiveRoutes(routes).find((r) => r?.isActive);
 }

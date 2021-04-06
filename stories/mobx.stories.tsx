@@ -1,5 +1,5 @@
 import { createMemoryHistory } from 'history';
-import { observer } from 'mobx-react-lite';
+import { Observer, observer } from 'mobx-react-lite';
 import * as React from 'react';
 import { XRoute, XRouter } from '../XRouter';
 
@@ -15,18 +15,18 @@ type ILanguage = typeof validLanguages[number];
 const FooRoute = XRoute(
   'foo',
   `/${languageParam}/foo`,
-  {} as { language: ILanguage },
+  {} as { pathname: { language: ILanguage }; search: { a: string; b: string } },
 );
 const BazRoute = XRoute(
   'baz',
   `/${languageParam}/baz`,
-  {} as { language: ILanguage },
+  {} as { pathname: { language: ILanguage } },
 );
 
 const DefaultRoute = XRoute(
   'default',
   '/:language?',
-  {} as { language?: ILanguage },
+  {} as { pathname: { language?: ILanguage } },
 );
 
 export const to_path = () => {
@@ -40,11 +40,15 @@ export const to_path = () => {
       <ul>
         <li>
           Foo route path, german:{' '}
-          <textarea>{router.routes.foo.toPath({ language: 'de' })}</textarea>
+          <textarea>
+            {router.routes.foo.toUri({ pathname: { language: 'de' } })}
+          </textarea>
         </li>
         <li>
           Foo route path, en:{' '}
-          <textarea>{router.routes.foo.toPath({ language: 'en' })}</textarea>
+          <textarea>
+            {router.routes.foo.toUri({ pathname: { language: 'en' } })}
+          </textarea>
         </li>
       </ul>
     );
@@ -53,6 +57,33 @@ export const to_path = () => {
   return (
     <>
       <Component />
+    </>
+  );
+};
+
+export const search_params = () => {
+  const [router] = React.useState(
+    () =>
+      new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
+  );
+
+  return (
+    <>
+      <Observer>
+        {() => (
+          <dl>
+            <dt>Search Params .toPath():</dt>
+            <dd>
+              {router.routes.foo.toUri({
+                pathname: {
+                  language: `${Date.now()}` as any,
+                },
+                search: { a: `${Date.now()}`, b: '2' },
+              })}
+            </dd>
+          </dl>
+        )}
+      </Observer>
     </>
   );
 };
@@ -92,7 +123,7 @@ export const shared_language_params = () => {
                 <dl>
                   <dt>
                     LANGUAGE:{' '}
-                    <b>{router.route?.params?.language || 'undefined'}</b>
+                    <b>{router.route?.pathname?.language || 'undefined'}</b>
                   </dt>
                   <dd>
                     {validLanguages.map((language) => (
@@ -112,7 +143,9 @@ export const shared_language_params = () => {
                   </dt>
                   <dd>
                     <button
-                      onClick={() => router.routes.foo.push({ language: 'en' })}
+                      onClick={() =>
+                        router.routes.foo.push({ pathname: { language: 'en' } })
+                      }
                     >
                       /en/foo
                     </button>
@@ -120,8 +153,10 @@ export const shared_language_params = () => {
                     <button
                       onClick={() =>
                         router.routes.foo.push({
-                          // Re-use the current route's language param or default to en
-                          language: router.route?.params?.language || 'en',
+                          pathname: {
+                            // Re-use the current route's language param or default to en
+                            language: router.route?.pathname?.language || 'en',
+                          },
                         })
                       }
                     >
@@ -133,7 +168,9 @@ export const shared_language_params = () => {
                   </dt>
                   <dd>
                     <button
-                      onClick={() => router.routes.baz.push({ language: 'en' })}
+                      onClick={() =>
+                        router.routes.baz.push({ pathname: { language: 'en' } })
+                      }
                     >
                       /en/baz
                     </button>
@@ -141,7 +178,9 @@ export const shared_language_params = () => {
                     <button
                       onClick={() =>
                         router.routes.baz.push({
-                          language: router.route?.params?.language || 'en',
+                          pathname: {
+                            language: router.route?.pathname?.language || 'en',
+                          },
                         })
                       }
                     >
@@ -154,7 +193,9 @@ export const shared_language_params = () => {
                   <dd>
                     <button
                       onClick={() =>
-                        router.routes.default.push({ ...router.route?.params })
+                        router.routes.default.push({
+                          ...router.route?.pathname,
+                        })
                       }
                     >
                       /:language/
@@ -162,7 +203,9 @@ export const shared_language_params = () => {
                     <br />
                     <button
                       onClick={() =>
-                        router.routes.default.push({ language: 'da' })
+                        router.routes.default.push({
+                          pathname: { language: 'da' },
+                        })
                       }
                     >
                       /da/
@@ -170,7 +213,9 @@ export const shared_language_params = () => {
                     <br />
                     <button
                       onClick={() =>
-                        router.routes.default.push({ language: undefined })
+                        router.routes.default.push({
+                          pathname: { language: undefined },
+                        })
                       }
                     >
                       /
