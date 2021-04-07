@@ -1,12 +1,17 @@
 import { History, Location } from 'history';
+import * as qs from 'qs';
 export interface ReactionFn {
     (reactTo: () => any, onChange: (v: any) => any): () => any;
 }
 /** Create a typed route config object */
-export declare const XRoute: <KEY extends string, RESOURCE extends string, PARAMS extends {}>(key: KEY, resource: RESOURCE, params: PARAMS) => {
+export declare const XRoute: <KEY extends string, RESOURCE extends string, LOCATION extends {
+    search?: {} | undefined;
+    pathname?: {} | undefined;
+    hash?: string | undefined;
+}>(key: KEY, resource: RESOURCE, location: LOCATION) => {
     key: KEY;
     resource: RESOURCE;
-    params: PARAMS;
+    location: LOCATION;
 };
 export interface IRouter extends XRouter<any, any, any, any> {
 }
@@ -18,13 +23,24 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
 }, ROUTE_CONFIG extends RouteConfig> {
     definition: LIST;
     history: History;
+    config: {
+        qs?: {
+            parse?: qs.IParseOptions;
+            format?: qs.IStringifyOptions;
+        };
+    };
     location: Location;
     stopReactingToHistory?(): void;
     stopReactingToLocation?(): void;
-    constructor(definition: LIST, history: History);
-    startReacting(): void;
+    constructor(definition: LIST, history: History, config?: {
+        qs?: {
+            parse?: qs.IParseOptions;
+            format?: qs.IStringifyOptions;
+        };
+    });
     setLocation(location: Location): void;
-    dispose(): void;
+    startReacting(): void;
+    stopReacting(): void;
     /**
      * A map of routes `{ [route.key]: route }`
      *
@@ -50,15 +66,16 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
      */
     get routes(): ROUTES;
     /** The currently active route. */
-    get route(): ActiveLiveRoute<Required<NonNullable<ROUTES[KEYS]>>> | undefined;
-    toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): string;
+    get route(): undefined | ROUTES[keyof ROUTES];
+    /** Converts a route to a string path. */
+    toUri<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']): string;
     /** history.push() a given route */
-    push<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
+    push<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']): void;
     /** Equal to history.push(pathname) */
     push(pathname: string): void;
     /** history.replace() a given route */
     /** Equal to history.replace(pathname) */
-    replace<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['params']): void;
+    replace<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']): void;
     replace(pathname: string): void;
     go: History['go'];
     back: History['back'];
@@ -68,7 +85,7 @@ export declare class XRouter<LIST extends RouteConfig[], KEYS extends LIST[numbe
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
      */
-    protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(route: ROUTE_DEF | string, params?: Partial<ROUTE_DEF['params']>, method?: 'push' | 'replace'): void;
+    protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(route: ROUTE_DEF | string, location?: Partial<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
 }
 export declare type RouteConfig = ReturnType<typeof XRoute>;
 /**
@@ -78,30 +95,26 @@ export declare type RouteConfig = ReturnType<typeof XRoute>;
 export interface LiveRoute<ITEM extends RouteConfig> {
     key: ITEM['key'];
     resource: ITEM['resource'];
-    params?: ITEM['params'];
-    hash?: string;
-    search?: string;
-    index?: number;
-    path?: string;
+    location: Location;
     isActive: boolean;
-    push(params?: Partial<ITEM['params']>): void;
-    pushExact(params: ITEM['params']): void;
-    replace(params?: Partial<ITEM['params']>): void;
-    replaceExact(params: ITEM['params']): void;
-    toPath(params?: Partial<ITEM['params']>): string;
-    toPathExact(params: ITEM['params']): string;
+    pathname?: ITEM['location']['pathname'];
+    hash?: ITEM['location']['hash'];
+    search?: ITEM['location']['search'];
+    push(params?: Partial<ITEM['location']>): void;
+    pushExact(params: ITEM['location']): void;
+    replace(params?: Partial<ITEM['location']>): void;
+    replaceExact(params: ITEM['location']): void;
+    toUri(params?: Partial<ITEM['location']>): string;
+    toPathExact(params: ITEM['location']): string;
 }
 export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
-    params: ITEM['params'];
-    resource: ITEM['resource'];
-    key: ITEM['key'];
-    path: string;
-    index: number;
-    hash: string;
+    pathname: ITEM['location']['pathname'];
+    search: ITEM['location']['search'];
+    hash: ITEM['location']['hash'];
     isActive: true;
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<any>>(routes: ROUTE[]): (ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined)[];
+export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined)[];
 export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<any>>(routes: ROUTE[]): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
+export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;

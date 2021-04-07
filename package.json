@@ -3,17 +3,15 @@
   "version": "5.0.0",
   "description": "Mobx state based router",
   "files": [
-    "dist/*"
+    "x/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/esm/index.d.ts",
-  "exports": {},
+  "main": "./x/cjs/index.js",
+  "module": "./x/esm/index.js",
+  "types": "./x/esm/index.d.ts",
   "scripts": {
-    "dist": "yarn dist:cjs && yarn dist:esm",
-    "dist:cjs": "tsc -p tsconfig.cjs.json",
-    "dist:esm": "tsc -p tsconfig.esm.json",
-    "dist:watch": "yarn -s dist --watch",
+    "build": "yarn build:cjs && yarn build:esm",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
     "dev": "start-storybook"
   },
   "peerDependencies": {

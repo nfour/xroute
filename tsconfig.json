@@ -2,7 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "target": "ES2018",
-    "outDir": "./dist",
+    "outDir": "./x",
     "allowJs": true,
     "moduleResolution": "node",
     "skipLibCheck": true,

@@ -1,14 +1,13 @@
 import isEqual from 'lodash-es/isEqual';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
-import * as qs from 'qs';
 /** Create a typed route config object */
-export const XRoute = (key, resource, location) => ({ key, resource, location });
+export const XRoute = (key, resource, params) => ({ key, resource, params });
 /**
  * Declarative routing via the History interface.
  */
 export class XRouter {
-    constructor(definition, history, config = {}) {
+    constructor(definition, history) {
         Object.defineProperty(this, "definition", {
             enumerable: true,
             configurable: true,
@@ -20,12 +19,6 @@ export class XRouter {
             configurable: true,
             writable: true,
             value: history
-        });
-        Object.defineProperty(this, "config", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: config
         });
         Object.defineProperty(this, "location", {
             enumerable: true,
@@ -65,14 +58,8 @@ export class XRouter {
         });
         this.definition = definition;
         this.history = history;
-        this.config = config;
         makeAutoObservable(this);
         this.startReacting();
-    }
-    setLocation(location) {
-        if (isEqual(this.location, location))
-            return;
-        this.location = { ...location };
     }
     startReacting() {
         this.setLocation(this.history.location);
@@ -83,7 +70,12 @@ export class XRouter {
             this.history.replace({ ...location });
         });
     }
-    stopReacting() {
+    setLocation(location) {
+        if (isEqual(this.location, location))
+            return;
+        this.location = { ...location };
+    }
+    dispose() {
         var _a, _b;
         (_a = this.stopReactingToHistory) === null || _a === void 0 ? void 0 : _a.call(this);
         (_b = this.stopReactingToLocation) === null || _b === void 0 ? void 0 : _b.call(this);
@@ -112,52 +104,43 @@ export class XRouter {
      * })
      */
     get routes() {
-        const location = this.location;
+        // TODO: we can probably avoid redoing this entire thing every time anything changes lol.
+        const { pathname = '/', hash, search } = this.location;
         // TODO: Should it be configurable to allow multiple matches?
         let isAlreadyMatched = false;
         return this.definition.reduce((routes, _route) => {
-            var _a;
             const route = _route;
             const { key, resource } = route;
             const matched = match(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
-            })(location.pathname);
-            const { index, params: pathname } = matched || {};
-            const mergeLocation = (p = {}) => {
-                var _a, _b, _c;
+            })(pathname);
+            const { index, path, params } = matched || {};
+            const mergeParams = (p = {}) => {
+                var _a, _b;
                 return ({
-                    pathname: {
-                        ...(_a = this.route) === null || _a === void 0 ? void 0 : _a.pathname,
-                        ...p.pathname,
-                    },
-                    search: { ...p.search },
-                    hash: (_b = p.hash) !== null && _b !== void 0 ? _b : (_c = this.route) === null || _c === void 0 ? void 0 : _c.hash,
+                    ...((_b = (_a = this.route) === null || _a === void 0 ? void 0 : _a.params) !== null && _b !== void 0 ? _b : {}),
+                    ...p,
                 });
             };
             const isActive = isAlreadyMatched === false && index !== undefined;
             if (isActive)
                 isAlreadyMatched = true;
-            const search = qs.parse((_a = location.search) !== null && _a !== void 0 ? _a : '', {
-                ignoreQueryPrefix: true,
-            });
-            // TODO: convert to a class LiveRoute {}
             const newRoute = {
                 isActive,
                 key,
+                index,
+                params,
                 resource,
+                path,
+                hash,
                 search,
-                pathname,
-                hash: location.hash,
-                get location() {
-                    return { ...location };
-                },
-                push: (p) => this.push(route, mergeLocation(p)),
+                push: (p) => this.push(route, mergeParams(p)),
                 pushExact: (p) => this.push(route, p),
-                replace: (p) => this.replace(route, mergeLocation(p)),
+                replace: (p) => this.replace(route, mergeParams(p)),
                 replaceExact: (p) => this.replace(route, p),
-                toUri: (p) => this.toUri(route, mergeLocation(p)),
-                toPathExact: (p) => this.toUri(route, p),
+                toPath: (p) => this.toPath(route, mergeParams(p)),
+                toPathExact: (p) => this.toPath(route, p),
             };
             return { ...routes, [key]: newRoute };
         }, {});
@@ -170,26 +153,13 @@ export class XRouter {
         for (const { key } of this.definition) {
             const route = this.routes[key];
             if (route.isActive)
-                return route;
+                return asActiveRoute(route);
         }
     }
-    /** Converts a route to a string path. */
-    toUri(route, params) {
-        var _a, _b;
+    toPath(route, params) {
         const { resource, key } = route;
         try {
-            const pathname = compile(resource)({ ...((_a = params === null || params === void 0 ? void 0 : params.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
-            const search = typeof (params === null || params === void 0 ? void 0 : params.search) === 'string'
-                ? params.search
-                : qs.stringify((_b = params === null || params === void 0 ? void 0 : params.search) !== null && _b !== void 0 ? _b : {}, {
-                    addQueryPrefix: false,
-                    encodeValuesOnly: true,
-                    format: 'RFC3986',
-                });
-            const hash = (params === null || params === void 0 ? void 0 : params.hash) ? `#${params.hash}` : '';
-            const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
-            console.log({ nextUri: uri, search, params });
-            return uri;
+            return compile(resource)({ ...params }) || '/';
         }
         catch (error) {
             throw new Error(`INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`);
@@ -205,11 +175,11 @@ export class XRouter {
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
      */
-    navigate(route, location = {}, method = 'push') {
+    navigate(route, params = {}, method = 'push') {
         if (typeof route === 'string') {
             return this.history[method](route);
         }
-        const path = this.toUri(route, location);
+        const path = this.toPath(route, params);
         this.history[method](path);
     }
 }
