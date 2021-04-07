@@ -4,10 +4,6 @@ import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 import * as qs from 'qs';
 
-export interface ReactionFn {
-  (reactTo: () => any, onChange: (v: any) => any): () => any;
-}
-
 /** Create a typed route config object */
 export const XRoute = <
   KEY extends string,
@@ -23,20 +19,20 @@ export const XRoute = <
   location: LOCATION,
 ) => ({ key, resource, location });
 
-export interface IRouter extends XRouter<any, any, any, any> {}
+export interface IRouter extends XRouter<any, any, any> {}
 
 /**
  * Declarative routing via the History interface.
  */
 export class XRouter<
-  LIST extends RouteConfig[],
-  KEYS extends LIST[number]['key'],
+  CONFIGS extends RouteConfig[],
   ROUTES extends {
-    [ITEM in LIST[number] as ITEM['key']]: LiveRoute<ITEM>;
+    [C in CONFIGS[number] as C['key']]: LiveRoute<C>;
   },
-  ROUTE_CONFIG extends RouteConfig
+  CONFIG extends CONFIGS[number]
 > {
-  location: Location = {
+  /** The synced location object. Also available within `this.routes[route].location`. */
+  public location: Location = {
     hash: '',
     key: '',
     pathname: '',
@@ -44,13 +40,14 @@ export class XRouter<
     state: {},
   };
 
-  stopReactingToHistory?(): void;
-  stopReactingToLocation?(): void;
+  public stopReactingToHistory?(): void;
+  public stopReactingToLocation?(): void;
 
   constructor(
-    public definition: LIST,
+    public definition: CONFIGS,
     public history: History,
     public config: {
+      /** @optional `qs` library option OVERRIDES (careful!) */
       qs?: {
         parse?: qs.IParseOptions;
         format?: qs.IStringifyOptions;
@@ -66,13 +63,15 @@ export class XRouter<
     this.startReacting();
   }
 
-  setLocation(location: Location) {
+  protected setLocation(location: Location) {
     if (isEqual(this.location, location)) return;
 
     this.location = { ...location };
   }
 
-  startReacting() {
+  /** Start reacting to changes. This is automatically called on construction. */
+  public startReacting() {
+    this.stopReacting();
     this.setLocation(this.history.location);
 
     this.stopReactingToHistory = this.history.listen(({ location }) =>
@@ -89,7 +88,8 @@ export class XRouter<
     );
   }
 
-  stopReacting() {
+  /** Stop reacting to all changes - disposer. */
+  public stopReacting() {
     this.stopReactingToHistory?.();
     this.stopReactingToLocation?.();
   }
@@ -104,7 +104,7 @@ export class XRouter<
    *
    * // Set the route and its parameters
    * // Can be used to set a route from a different route too
-   * router.routes.myRoute.push({ myParam: 'banana' })
+   * router.routes.myRoute.push({ pathname: { myParam: 'banana' } })
    *
    * // on myRoute now...
    *
@@ -114,7 +114,7 @@ export class XRouter<
    *
    * router.routes.routeWithRequired.push({
    *   // router.route is always the activeRoute
-   *   myProp: router.route?.params?.myParam || 'something'
+   *   pathname: { myProp: router.route?.pathname?.myParam || 'something' }
    * })
    */
   get routes(): ROUTES {
@@ -124,7 +124,7 @@ export class XRouter<
     let isAlreadyMatched = false;
 
     return this.definition.reduce((routes, _route) => {
-      const route = _route as ROUTE_CONFIG;
+      const route = _route as CONFIG;
       const { key, resource } = route;
       const matched = match(resource, {
         decode: decodeURI,
@@ -148,6 +148,7 @@ export class XRouter<
 
       const search = qs.parse(location.search ?? '', {
         ignoreQueryPrefix: true,
+        ...this.config.qs?.parse,
       });
 
       // TODO: convert to a class LiveRoute {}
@@ -157,6 +158,7 @@ export class XRouter<
         resource,
         search,
         pathname,
+        config: route,
         hash: location.hash,
         get location() {
           return { ...location };
@@ -174,19 +176,19 @@ export class XRouter<
   }
 
   /** The currently active route. */
-  get route(): undefined | ROUTES[keyof ROUTES] {
+  get route(): undefined | ActiveLiveRoute<CONFIG> {
     if (!this.routes) return;
 
     // Get routes in order.
     for (const { key } of this.definition) {
-      const route = this.routes[key as KEYS];
+      const route = this.routes[key as keyof this['routes']];
 
-      if (route.isActive) return route;
+      if (route.isActive) return route as any;
     }
   }
 
   /** Converts a route to a string path. */
-  toUri<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']) {
+  toUri<ROUTE extends CONFIG>(route: ROUTE, params?: ROUTE['location']) {
     const { resource, key } = route;
 
     try {
@@ -200,6 +202,7 @@ export class XRouter<
               addQueryPrefix: false,
               encodeValuesOnly: true,
               format: 'RFC3986',
+              ...this.config.qs?.format,
             });
 
       const hash = params?.hash ? `#${params.hash}` : '';
@@ -216,31 +219,34 @@ export class XRouter<
   }
 
   /** history.push() a given route */
-  push<ROUTE extends ROUTE_CONFIG>(
+  push<ROUTE extends CONFIG>(
     route: ROUTE,
-    params?: ROUTE['location'],
+    location?: Partial<ROUTE['location']>,
   ): void;
 
   /** Equal to history.push(pathname) */
-  push(pathname: string): void;
-  push<ROUTE extends ROUTE_CONFIG>(
+  push(fullPath: string): void;
+  push<ROUTE extends CONFIG>(
     route: ROUTE | string,
-    params?: ROUTE['location'],
+    location?: Partial<ROUTE['location']>,
   ) {
-    this.navigate(route, params, 'push');
+    this.navigate(route, location, 'push');
   }
 
   /** history.replace() a given route */
 
   /** Equal to history.replace(pathname) */
-  replace<ROUTE extends ROUTE_CONFIG>(
+  replace<ROUTE extends CONFIG>(
     route: ROUTE,
-    params?: ROUTE['location'],
+    location?: Partial<ROUTE['location']>,
   ): void;
 
-  replace(pathname: string): void;
-  replace(route: ROUTE_CONFIG | string, params?: {}) {
-    this.navigate(route, params, 'replace');
+  replace(fullPath: string): void;
+  replace<ROUTE extends CONFIG>(
+    route: ROUTE | string,
+    location?: Partial<ROUTE['location']>,
+  ) {
+    this.navigate(route, location, 'replace');
   }
 
   go: History['go'] = (...args) => this.history.go(...args);
@@ -252,7 +258,7 @@ export class XRouter<
    * Be aware, toPath will throw if missing params.
    * When navigating from another route, ensure you provide all required params.
    */
-  protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(
+  protected navigate<ROUTE_DEF extends CONFIG>(
     route: ROUTE_DEF | string,
     location: Partial<ROUTE_DEF['location']> = {},
     method: 'push' | 'replace' = 'push',
@@ -273,32 +279,35 @@ export type RouteConfig = ReturnType<typeof XRoute>;
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
  */
-export interface LiveRoute<ITEM extends RouteConfig> {
-  key: ITEM['key'];
-  resource: ITEM['resource'];
-  location: Location;
+export interface LiveRoute<CONFIG extends RouteConfig> {
   isActive: boolean;
 
-  pathname?: ITEM['location']['pathname'];
-  hash?: ITEM['location']['hash'];
-  search?: ITEM['location']['search'];
+  pathname?: CONFIG['location']['pathname'];
+  search?: CONFIG['location']['search'];
+  hash?: CONFIG['location']['hash'];
 
-  push(params?: Partial<ITEM['location']>): void;
-  pushExact(params: ITEM['location']): void;
+  location: Location;
 
-  replace(params?: Partial<ITEM['location']>): void;
-  replaceExact(params: ITEM['location']): void;
+  key: CONFIG['key'];
+  resource: CONFIG['resource'];
+  config: CONFIG;
+  push(location?: Partial<CONFIG['location']>): void;
+  pushExact(location: CONFIG['location']): void;
 
-  toUri(params?: Partial<ITEM['location']>): string;
-  toPathExact(params: ITEM['location']): string;
+  replace(location?: Partial<CONFIG['location']>): void;
+  replaceExact(location: CONFIG['location']): void;
+
+  toUri(location?: Partial<CONFIG['location']>): string;
+  toPathExact(location: CONFIG['location']): string;
 }
 
 export interface ActiveLiveRoute<ITEM extends RouteConfig>
   extends LiveRoute<ITEM> {
+  isActive: true;
+
   pathname: ITEM['location']['pathname'];
   search: ITEM['location']['search'];
   hash: ITEM['location']['hash'];
-  isActive: true;
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
