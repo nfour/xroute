@@ -180,22 +180,22 @@ export class XRouter {
         }
     }
     /** Converts a route to a string path. */
-    toUri(route, params) {
+    toUri(route, location) {
         var _a, _b, _c;
         const { resource, key } = route;
         try {
-            const pathname = compile(resource)({ ...((_a = params === null || params === void 0 ? void 0 : params.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
-            const search = typeof (params === null || params === void 0 ? void 0 : params.search) === 'string'
-                ? params.search
-                : qs.stringify((_b = params === null || params === void 0 ? void 0 : params.search) !== null && _b !== void 0 ? _b : {}, {
+            const pathname = compile(resource)({ ...((_a = location === null || location === void 0 ? void 0 : location.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
+            const search = typeof (location === null || location === void 0 ? void 0 : location.search) === 'string'
+                ? location.search
+                : qs.stringify((_b = location === null || location === void 0 ? void 0 : location.search) !== null && _b !== void 0 ? _b : {}, {
                     addQueryPrefix: false,
                     encodeValuesOnly: true,
                     format: 'RFC3986',
                     ...(_c = this.config.qs) === null || _c === void 0 ? void 0 : _c.format,
                 });
-            const hash = (params === null || params === void 0 ? void 0 : params.hash) ? `#${params.hash}` : '';
+            const hash = (location === null || location === void 0 ? void 0 : location.hash) ? `#${location.hash}` : '';
             const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
-            console.log({ nextUri: uri, search, params });
+            console.log({ nextUri: uri, search, location });
             return uri;
         }
         catch (error) {

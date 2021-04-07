@@ -9,8 +9,8 @@ export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
   LOCATION extends {
-    search?: {};
-    pathname?: {};
+    pathname: {};
+    search: {};
     hash?: string;
   }
 >(
@@ -163,12 +163,12 @@ export class XRouter<
         get location() {
           return { ...location };
         },
-        push: (p: {}) => this.push(route, mergeLocation(p)),
-        pushExact: (p: {}) => this.push(route, p),
-        replace: (p: {}) => this.replace(route, mergeLocation(p)),
-        replaceExact: (p: {}) => this.replace(route, p),
-        toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
-        toPathExact: (p: {}) => this.toUri(route, p),
+        push: (p: any) => this.push(route, mergeLocation(p)),
+        pushExact: (p: any) => this.push(route, p),
+        replace: (p: any) => this.replace(route, mergeLocation(p)),
+        replaceExact: (p: any) => this.replace(route, p),
+        toUri: (p: any) => this.toUri(route, mergeLocation(p)),
+        toPathExact: (p: any) => this.toUri(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -188,27 +188,30 @@ export class XRouter<
   }
 
   /** Converts a route to a string path. */
-  toUri<ROUTE extends CONFIG>(route: ROUTE, params?: ROUTE['location']) {
+  toUri<ROUTE extends CONFIG>(
+    route: ROUTE,
+    location?: Partial<ROUTE['location']>,
+  ) {
     const { resource, key } = route;
 
     try {
       const pathname =
-        compile(resource)({ ...(params?.pathname ?? {}) }) || '/';
+        compile(resource)({ ...(location?.pathname ?? {}) }) || '/';
 
       const search =
-        typeof params?.search === 'string'
-          ? params.search
-          : qs.stringify(params?.search ?? {}, {
+        typeof location?.search === 'string'
+          ? location.search
+          : qs.stringify(location?.search ?? {}, {
               addQueryPrefix: false,
               encodeValuesOnly: true,
               format: 'RFC3986',
               ...this.config.qs?.format,
             });
 
-      const hash = params?.hash ? `#${params.hash}` : '';
+      const hash = location?.hash ? `#${location.hash}` : '';
       const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
 
-      console.log({ nextUri: uri, search, params });
+      console.log({ nextUri: uri, search, location });
 
       return uri;
     } catch (error) {

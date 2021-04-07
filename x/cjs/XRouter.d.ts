@@ -2,8 +2,8 @@ import { History, Location } from 'history';
 import * as qs from 'qs';
 /** Create a typed route config object */
 export declare const XRoute: <KEY extends string, RESOURCE extends string, LOCATION extends {
-    search?: {} | undefined;
-    pathname?: {} | undefined;
+    pathname: {};
+    search: {};
     hash?: string | undefined;
 }>(key: KEY, resource: RESOURCE, location: LOCATION) => {
     key: KEY;
@@ -70,7 +70,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     /** The currently active route. */
     get route(): undefined | ActiveLiveRoute<CONFIG>;
     /** Converts a route to a string path. */
-    toUri<ROUTE extends CONFIG>(route: ROUTE, params?: ROUTE['location']): string;
+    toUri<ROUTE extends CONFIG>(route: ROUTE, location?: Partial<ROUTE['location']>): string;
     /** history.push() a given route */
     push<ROUTE extends CONFIG>(route: ROUTE, location?: Partial<ROUTE['location']>): void;
     /** Equal to history.push(pathname) */
