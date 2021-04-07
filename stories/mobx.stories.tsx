@@ -22,8 +22,8 @@ const FooRoute = XRoute(
 );
 const BazRoute = XRoute(
   'baz',
-  `/${languageParam}/baz`,
-  {} as { pathname: { language: ILanguage }; search: {} },
+  `/${languageParam}/baz/:baz`,
+  {} as { pathname: { language: ILanguage; baz: string }; search: {} },
 );
 
 const DefaultRoute = XRoute(
@@ -241,7 +241,9 @@ export const shared_language_params = () => {
                   <dd>
                     <button
                       onClick={() =>
-                        router.routes.baz.push({ pathname: { language: 'en' } })
+                        router.routes.baz.push({
+                          pathname: { language: 'en', baz: 'sdsds' },
+                        })
                       }
                     >
                       /en/baz
@@ -251,12 +253,12 @@ export const shared_language_params = () => {
                       onClick={() =>
                         router.routes.baz.push({
                           pathname: {
-                            language: router.route?.pathname?.language || 'en',
+                            baz: 'sdsdsdsds',
                           },
                         })
                       }
                     >
-                      /:language/baz
+                      /:language/baz/sdsdsdsds
                     </button>
                   </dd>
                   <dt {...(router.route?.key === 'default' ? activeProps : {})}>

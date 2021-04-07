@@ -70,14 +70,14 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     /** The currently active route. */
     get route(): undefined | ActiveLiveRoute<CONFIG>;
     /** Converts a route to a string path. */
-    toUri<ROUTE extends CONFIG>(route: ROUTE, location?: Partial<ROUTE['location']>): string;
+    toUri<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): string;
     /** history.push() a given route */
-    push<ROUTE extends CONFIG>(route: ROUTE, location?: Partial<ROUTE['location']>): void;
+    push<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): void;
     /** Equal to history.push(pathname) */
     push(fullPath: string): void;
     /** history.replace() a given route */
     /** Equal to history.replace(pathname) */
-    replace<ROUTE extends CONFIG>(route: ROUTE, location?: Partial<ROUTE['location']>): void;
+    replace<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): void;
     replace(fullPath: string): void;
     go: History['go'];
     back: History['back'];
@@ -87,7 +87,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
      */
-    protected navigate<ROUTE_DEF extends CONFIG>(route: ROUTE_DEF | string, location?: Partial<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
+    protected navigate<ROUTE_DEF extends CONFIG>(route: ROUTE_DEF | string, location?: Partial2Deep<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
 }
 export declare type RouteConfig = ReturnType<typeof XRoute>;
 /**
@@ -103,11 +103,11 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
     key: CONFIG['key'];
     resource: CONFIG['resource'];
     config: CONFIG;
-    push(location?: Partial<CONFIG['location']>): void;
+    push(location?: Partial2Deep<CONFIG['location']>): void;
     pushExact(location: CONFIG['location']): void;
-    replace(location?: Partial<CONFIG['location']>): void;
+    replace(location?: Partial2Deep<CONFIG['location']>): void;
     replaceExact(location: CONFIG['location']): void;
-    toUri(location?: Partial<CONFIG['location']>): string;
+    toUri(location?: Partial2Deep<CONFIG['location']>): string;
     toPathExact(location: CONFIG['location']): string;
 }
 export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
@@ -121,3 +121,7 @@ export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<Route
 export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
 export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
+declare type Partial2Deep<T> = {
+    [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
+};
+export {};

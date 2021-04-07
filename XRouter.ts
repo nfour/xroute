@@ -163,12 +163,12 @@ export class XRouter<
         get location() {
           return { ...location };
         },
-        push: (p: any) => this.push(route, mergeLocation(p)),
-        pushExact: (p: any) => this.push(route, p),
-        replace: (p: any) => this.replace(route, mergeLocation(p)),
-        replaceExact: (p: any) => this.replace(route, p),
-        toUri: (p: any) => this.toUri(route, mergeLocation(p)),
-        toPathExact: (p: any) => this.toUri(route, p),
+        push: (p: {}) => this.push(route, mergeLocation(p)),
+        pushExact: (p: {}) => this.push(route, p),
+        replace: (p: {}) => this.replace(route, mergeLocation(p)),
+        replaceExact: (p: {}) => this.replace(route, p),
+        toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
+        toPathExact: (p: {}) => this.toUri(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -190,7 +190,7 @@ export class XRouter<
   /** Converts a route to a string path. */
   toUri<ROUTE extends CONFIG>(
     route: ROUTE,
-    location?: Partial<ROUTE['location']>,
+    location?: Partial2Deep<ROUTE['location']>,
   ) {
     const { resource, key } = route;
 
@@ -224,14 +224,14 @@ export class XRouter<
   /** history.push() a given route */
   push<ROUTE extends CONFIG>(
     route: ROUTE,
-    location?: Partial<ROUTE['location']>,
+    location?: Partial2Deep<ROUTE['location']>,
   ): void;
 
   /** Equal to history.push(pathname) */
   push(fullPath: string): void;
   push<ROUTE extends CONFIG>(
     route: ROUTE | string,
-    location?: Partial<ROUTE['location']>,
+    location?: Partial2Deep<ROUTE['location']>,
   ) {
     this.navigate(route, location, 'push');
   }
@@ -241,13 +241,13 @@ export class XRouter<
   /** Equal to history.replace(pathname) */
   replace<ROUTE extends CONFIG>(
     route: ROUTE,
-    location?: Partial<ROUTE['location']>,
+    location?: Partial2Deep<ROUTE['location']>,
   ): void;
 
   replace(fullPath: string): void;
   replace<ROUTE extends CONFIG>(
     route: ROUTE | string,
-    location?: Partial<ROUTE['location']>,
+    location?: Partial2Deep<ROUTE['location']>,
   ) {
     this.navigate(route, location, 'replace');
   }
@@ -263,7 +263,7 @@ export class XRouter<
    */
   protected navigate<ROUTE_DEF extends CONFIG>(
     route: ROUTE_DEF | string,
-    location: Partial<ROUTE_DEF['location']> = {},
+    location: Partial2Deep<ROUTE_DEF['location']> = {},
     method: 'push' | 'replace' = 'push',
   ): void {
     if (typeof route === 'string') {
@@ -294,13 +294,13 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
   key: CONFIG['key'];
   resource: CONFIG['resource'];
   config: CONFIG;
-  push(location?: Partial<CONFIG['location']>): void;
+  push(location?: Partial2Deep<CONFIG['location']>): void;
   pushExact(location: CONFIG['location']): void;
 
-  replace(location?: Partial<CONFIG['location']>): void;
+  replace(location?: Partial2Deep<CONFIG['location']>): void;
   replaceExact(location: CONFIG['location']): void;
 
-  toUri(location?: Partial<CONFIG['location']>): string;
+  toUri(location?: Partial2Deep<CONFIG['location']>): string;
   toPathExact(location: CONFIG['location']): string;
 }
 
@@ -332,3 +332,7 @@ export function findActiveRoute<
 >(routes: ROUTE[]) {
   return asActiveRoutes(routes).find((r) => r?.isActive);
 }
+
+type Partial2Deep<T> = {
+  [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
+};
