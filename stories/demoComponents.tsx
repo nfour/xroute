@@ -74,7 +74,7 @@ export const SharedLanguageDemo = ({
             <dd>
               <input
                 style={{ fontSize: '2em' }}
-                value={router.route?.path}
+                value={router.route?.uri}
                 onChange={(e) => router.replace(e.target.value)}
               />
             </dd>

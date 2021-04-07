@@ -15,18 +15,21 @@ type ILanguage = typeof validLanguages[number];
 const FooRoute = XRoute(
   'foo',
   `/${languageParam}/foo`,
-  {} as { pathname: { language: ILanguage }; search: { a: string; b: string } },
+  {} as {
+    pathname: { language: ILanguage };
+    search: { a?: string; b?: { x: string } };
+  },
 );
 const BazRoute = XRoute(
   'baz',
   `/${languageParam}/baz`,
-  {} as { pathname: { language: ILanguage } },
+  {} as { pathname: { language: ILanguage }; search: {} },
 );
 
 const DefaultRoute = XRoute(
   'default',
   '/:language?',
-  {} as { pathname: { language?: ILanguage } },
+  {} as { pathname: { language?: ILanguage }; search: {} },
 );
 
 export const to_path = () => {
@@ -70,19 +73,84 @@ export const search_params = () => {
   return (
     <>
       <Observer>
-        {() => (
-          <dl>
-            <dt>Search Params .toPath():</dt>
-            <dd>
-              {router.routes.foo.toUri({
-                pathname: {
-                  language: `${Date.now()}` as any,
-                },
-                search: { a: `${Date.now()}`, b: '2' },
-              })}
-            </dd>
-          </dl>
-        )}
+        {() => {
+          const { foo: route } = router.routes;
+          const [search, setSearch] = React.useState({
+            a: `${Date.now()}`,
+            b: { x: '1' },
+          });
+          const uriText = route.toUri({
+            pathname: {
+              language: 'da',
+            },
+            search,
+          });
+
+          React.useEffect(() => {
+            console.log('new');
+
+            route.push({
+              pathname: { language: 'en' },
+              search,
+            });
+          }, [search]);
+
+          console.log('foo', route);
+
+          return (
+            <dl>
+              <dt>
+                Search Params.toPath():
+                <br />
+                <label>a</label>
+                <input
+                  value={search.a}
+                  onChange={(e) =>
+                    setSearch({
+                      ...search,
+                      a: e.target.value,
+                    })
+                  }
+                />
+                <label>b.x</label>
+                <input
+                  value={search.b.x}
+                  onChange={(e) =>
+                    setSearch({
+                      ...search,
+                      b: {
+                        ...search.b,
+                        x: e.target.value,
+                      },
+                    })
+                  }
+                />
+              </dt>
+              <dd>
+                <dl>
+                  <dt>URI:</dt>
+                  <dd>{uriText}</dd>
+                </dl>
+                <dl>
+                  <dt>Route as JSON:</dt>
+                  <dd>
+                    <pre>
+                      {JSON.stringify(
+                        {
+                          search: route.search,
+                          pathname: route.pathname,
+                          hash: route.hash,
+                        },
+                        null,
+                        2,
+                      )}
+                    </pre>
+                  </dd>
+                </dl>
+              </dd>
+            </dl>
+          );
+        }}
       </Observer>
     </>
   );
@@ -114,7 +182,7 @@ export const shared_language_params = () => {
               <dd>
                 <input
                   style={{ fontSize: '2em' }}
-                  value={router.route?.path}
+                  value={router.route?.location.pathname}
                   onChange={(e) => router.replace(e.target.value)}
                 />
               </dd>
@@ -130,7 +198,11 @@ export const shared_language_params = () => {
                       <>
                         <div>
                           <button
-                            onClick={() => router.route?.push({ language })}
+                            onClick={() =>
+                              router.route?.push({
+                                pathname: { language: 'de' },
+                              })
+                            }
                           >
                             {language}
                           </button>
@@ -194,7 +266,9 @@ export const shared_language_params = () => {
                     <button
                       onClick={() =>
                         router.routes.default.push({
-                          ...router.route?.pathname,
+                          pathname: {
+                            ...router.route?.pathname,
+                          },
                         })
                       }
                     >

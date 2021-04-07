@@ -12,15 +12,15 @@ export interface ReactionFn {
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
-  PARAMS extends {
-    search?: string | {};
-    pathname?: string | {};
+  LOCATION extends {
+    search?: {};
+    pathname?: {};
     hash?: string;
   }
 >(
   key: KEY,
   resource: RESOURCE,
-  location: PARAMS,
+  location: LOCATION,
 ) => ({ key, resource, location });
 
 export interface IRouter extends XRouter<any, any, any, any> {}
@@ -47,9 +47,19 @@ export class XRouter<
   stopReactingToHistory?(): void;
   stopReactingToLocation?(): void;
 
-  constructor(public definition: LIST, public history: History) {
+  constructor(
+    public definition: LIST,
+    public history: History,
+    public config: {
+      qs?: {
+        parse?: qs.IParseOptions;
+        format?: qs.IStringifyOptions;
+      };
+    } = {},
+  ) {
     this.definition = definition;
     this.history = history;
+    this.config = config;
 
     makeAutoObservable(this);
 
@@ -121,41 +131,42 @@ export class XRouter<
         encode: encodeURI,
       })(location.pathname);
 
-      const { index, path, params } = matched || {};
+      const { index, params: pathname } = matched || {};
 
-      const mergeParams = (p = {}) => ({
-        ...((this.route?.pathname as {}) ?? {}),
-        ...p,
+      const mergeLocation = (p: Partial<LiveRoute<any>> = {}) => ({
+        pathname: {
+          ...(this.route?.pathname as {} | undefined),
+          ...p.pathname,
+        },
+        search: { ...p.search },
+        hash: p.hash ?? this.route?.hash,
       });
 
       const isActive = isAlreadyMatched === false && index !== undefined;
 
       if (isActive) isAlreadyMatched = true;
 
+      const search = qs.parse(location.search ?? '', {
+        ignoreQueryPrefix: true,
+      });
+
+      // TODO: convert to a class LiveRoute {}
       const newRoute: LiveRoute<typeof route> = {
         isActive,
         key,
-        index,
         resource,
-        path,
-        get pathname() {
-          return params;
-        },
-        get hash() {
-          return location.hash;
-        },
-        get search() {
-          return qs.parse(location.search ?? '');
-        },
+        search,
+        pathname,
+        hash: location.hash,
         get location() {
-          return location;
+          return { ...location };
         },
-        push: (p: {}) => this.push(route, mergeParams(p)),
+        push: (p: {}) => this.push(route, mergeLocation(p)),
         pushExact: (p: {}) => this.push(route, p),
-        replace: (p: {}) => this.replace(route, mergeParams(p)),
+        replace: (p: {}) => this.replace(route, mergeLocation(p)),
         replaceExact: (p: {}) => this.replace(route, p),
-        toUri: (p: {}) => this.toPath(route, mergeParams(p)),
-        toPathExact: (p: {}) => this.toPath(route, p),
+        toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
+        toPathExact: (p: {}) => this.toUri(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -163,22 +174,40 @@ export class XRouter<
   }
 
   /** The currently active route. */
-  get route() {
+  get route(): undefined | ROUTES[keyof ROUTES] {
     if (!this.routes) return;
 
     // Get routes in order.
     for (const { key } of this.definition) {
       const route = this.routes[key as KEYS];
 
-      if (route.isActive) return asActiveRoute(route);
+      if (route.isActive) return route;
     }
   }
 
-  toPath<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']) {
+  /** Converts a route to a string path. */
+  toUri<ROUTE extends ROUTE_CONFIG>(route: ROUTE, params?: ROUTE['location']) {
     const { resource, key } = route;
 
     try {
-      return compile(resource)({ ...params }) || '/';
+      const pathname =
+        compile(resource)({ ...(params?.pathname ?? {}) }) || '/';
+
+      const search =
+        typeof params?.search === 'string'
+          ? params.search
+          : qs.stringify(params?.search ?? {}, {
+              addQueryPrefix: false,
+              encodeValuesOnly: true,
+              format: 'RFC3986',
+            });
+
+      const hash = params?.hash ? `#${params.hash}` : '';
+      const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
+
+      console.log({ nextUri: uri, search, params });
+
+      return uri;
     } catch (error) {
       throw new Error(
         `INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`,
@@ -225,14 +254,14 @@ export class XRouter<
    */
   protected navigate<ROUTE_DEF extends ROUTE_CONFIG>(
     route: ROUTE_DEF | string,
-    params: Partial<ROUTE_DEF['location']> = {},
+    location: Partial<ROUTE_DEF['location']> = {},
     method: 'push' | 'replace' = 'push',
   ): void {
     if (typeof route === 'string') {
       return this.history[method](route);
     }
 
-    const path = this.toPath(route, params);
+    const path = this.toUri(route, location);
 
     this.history[method](path);
   }
@@ -247,13 +276,12 @@ export type RouteConfig = ReturnType<typeof XRoute>;
 export interface LiveRoute<ITEM extends RouteConfig> {
   key: ITEM['key'];
   resource: ITEM['resource'];
+  location: Location;
+  isActive: boolean;
+
   pathname?: ITEM['location']['pathname'];
   hash?: ITEM['location']['hash'];
   search?: ITEM['location']['search'];
-  index?: number;
-  path?: string;
-  isActive: boolean;
-  location: any;
 
   push(params?: Partial<ITEM['location']>): void;
   pushExact(params: ITEM['location']): void;
@@ -270,10 +298,6 @@ export interface ActiveLiveRoute<ITEM extends RouteConfig>
   pathname: ITEM['location']['pathname'];
   search: ITEM['location']['search'];
   hash: ITEM['location']['hash'];
-  resource: ITEM['resource'];
-  key: ITEM['key'];
-  path: string;
-  index: number;
   isActive: true;
 }
 
