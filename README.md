@@ -6,8 +6,8 @@ Mobx powered `History` router, with types.
 
 - [x] Decoupled state based routing
 - [x] Type safe `pathname` params
-- [ ] (Soon) Type safe `search` query variables (using qs)
-- [ ] (Future?) Automatic type acquisition from pathname string literal
+- [x] Type safe `search` query variables (using qs)
+- [ ] (Future) Automatic type acquisition from pathname string literal
 
 ## Usage
 
@@ -54,7 +54,7 @@ const router = new XRouter(
 // Use it
 //
 
-import { autorun } from 'mobx
+import { autorun } from 'mobx'
 
 // Log some changes
 autorun(() => {
