@@ -137,7 +137,7 @@ const router = new XRouter(
 // Use it
 //
 
-import { autorun } from 'mobx
+import { autorun } from 'mobx'
 
 // Log some changes
 autorun(() => console.log('Active route:', router.route))
