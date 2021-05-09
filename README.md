@@ -17,12 +17,10 @@ Mobx powered `History` router, with types.
 > See the [source for Typescript definition](./xroute.ts)
 > See the [stories for usage examples](./xroute.stories.ts)
 
-
 ## Simple working example, in React
 
 ```tsx
 import { XRoute, XRouter } from 'xroute'
-
 
 const blueRoute = XRoute(
   'blue',
@@ -55,7 +53,7 @@ const hueRoute = XRoute(
 )
 
 const App = observer(() => {
-  const [router] = React.useState(() => new XRouter([]))
+  const [router] = React.useState(() => new XRouter([blueRoute, hueRoute]))
 
   return (
     <>

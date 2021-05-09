@@ -1,15 +1,16 @@
 # Changelog
 
 
-## 5.0.0
+## 5.1.0
+
+- Added `search` querystring support
 
 ### Breaking
-- Made `mobx` integration optional.
-- `XRouter` is now a generic class and can be configured for any reactive framework.
-- `mobx` configuration is now exported from `xroute/mobx`
-
-### Migration
-- `mobx` users can migrate with this import: `import { XRouterMobx, XRoute, findActiveRoute, ... } from 'xroute/mobx'`
+- `toPath` renamed to `toUri`
+- Pathname parameters are now set differently:
+  - ❌ Old: `router.routes.myRoute.push({ myVar: 2 })`
+  - ✅ New: `router.routes.myRoute.push({ pathname: { myVar: 2 } })`
+- Pathname params now accessable from `router.routes.myRoute.pathname?.myVar`
 
 ## 4.0.0
 
