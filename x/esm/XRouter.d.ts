@@ -38,7 +38,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
             format?: qs.IStringifyOptions;
         };
     });
-    protected setLocation(location: Location): void;
+    setLocation(location: Location): void;
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting(): void;
     /** Stop reacting to all changes - disposer. */
