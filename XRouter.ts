@@ -63,7 +63,7 @@ export class XRouter<
     this.startReacting();
   }
 
-  protected setLocation(location: Location) {
+  public setLocation(location: Location) {
     if (isEqual(this.location, location)) return;
 
     this.location = { ...location };

@@ -4,10 +4,11 @@ Mobx powered `History` router, with types.
 
 ## Features
 
-- [x] Decoupled state based routing
+- [x] Declarative observable wrapper over the `History` interface
 - [x] Type safe `pathname` params
-- [ ] (Soon) Type safe `search` query variables (using qs)
-- [ ] (Future?) Automatic type acquisition from pathname string literal
+- [x] Type safe `search` params via `qs` serialization
+- [x] Type safe `hash` string
+- [ ] (Future) Automatic type acquisition from pathname string literal
 
 ## Usage
 
@@ -15,6 +16,84 @@ Mobx powered `History` router, with types.
 
 > See the [source for Typescript definition](./xroute.ts)
 > See the [stories for usage examples](./xroute.stories.ts)
+
+
+## Simple working example, in React
+
+```tsx
+import { XRoute, XRouter } from 'xroute'
+
+
+const blueRoute = XRoute(
+  'blue',
+  '/blue/:saturation/:alpha?', // Optional language param
+  {} as {
+    pathname: {
+      /** 0-100 */
+      saturation: string
+      /** 0-100 */
+      alpha?: string
+    },
+    search: {},
+  } 
+)
+
+const hueRoute = XRoute(
+  'hue',
+  '/hue', 
+  {} as {
+    pathname: {},
+    search: {
+      alpha?: string,
+      hue?: {
+        red?: string,
+        green?: string,
+        blue?: string
+      }
+    },
+  } 
+)
+
+const App = observer(() => {
+  const [router] = React.useState(() => new XRouter([]))
+
+  return (
+    <>
+      {router.routes.blue.isActive ?? <>
+        <label>Blue</label>
+        <div
+          style={{
+            height: '100px',
+            width: '100px',
+            backgroundColor: `hsl(
+              248deg
+              ${router.routes.blue.pathname?.saturation ?? '50'}%
+              ${router.routes.blue.pathname?.alpha ? `/ ${router.routes.blue.pathname?.alpha}%` : ''}
+            )`
+          }}
+        />
+      </>}
+      {router.route?.key === 'hue' ?? <>
+        <label>Hue</label>
+        <div
+          style={{
+            height: '100px',
+            width: '100px',
+            backgroundColor: `rgba(
+              ${router.routes.hue.search?.hue?.red ?? '200'},
+              ${router.routes.hue.search?.hue?.green ?? '200'},
+              ${router.routes.hue.search?.hue?.blue ?? '200'},
+              ${router.routes.hue.search?.alpha ?? '1'},
+            )`
+          }}
+        />
+      </>}
+    </>
+  )
+})
+```
+
+## Detailed examples
 
 ```tsx
 import { XRoute } from 'xroute'
@@ -26,13 +105,19 @@ import { XRoute } from 'xroute'
 const HomeRoute = XRoute(
   'home',
   '/:language(en|da|de)?', // Optional language param
-  {} as { language?: 'en'|'da'|'de' } 
+  {} as {
+    pathname: { language?: 'en'|'da'|'de' },
+    search: {},
+  } 
 )
 
 const UserProfileRoute = XRoute(
   'userProfile',
   '/:language(en|da|de)/user/:userId', // All params required
-  {} as { language: 'en'|'da'|'de', userId: string } 
+  {} as {
+    pathname: { language: 'en'|'da'|'de', userId: string },
+    search: { profileSection: 'profile'|'preferences' },
+  } 
 )
 
 //
@@ -57,37 +142,33 @@ const router = new XRouter(
 import { autorun } from 'mobx
 
 // Log some changes
-autorun(() => {
-  console.log(
-    'Active route params:', router.route?.params
-  )
-})
+autorun(() => console.log('Active route:', router.route))
 
 // Navigate to: /en
-router.routes.home.push({ language: 'en' })
+router.routes.home.push({ pathname: { language: 'en' } })
 
 // Get the pathname, eg. to put inside an <a href="" />
-router.routes.home.toPath({ language: 'da' }) // "/da"
+const homeDaUri = router.routes.home.toUri({ language: 'da' }) // "/da"
 
 // Navigates to: /en/user/11
-router.routes.userProfile.push({ language: 'en', userId: '11' })
+router.routes.userProfile.push({ pathname: { language: 'en', userId: '11' } })
 
 // Just change the language in the active route.
 // This works as long as the parameter is shared between all routes.
 // Navigates to: /da/user/11
-router.route?.push({ language: 'da' })
+router.route?.push({ pathname: { language: 'da' } })
 
 // Re-use the current language
 // Navigates to: /da/
-router.routes.home.push({ language: router.route?.params.language })
+router.routes.home.push({ pathname: { language: router.route?.pathname.language } })
 
 // Provide a route object to route from anywhere:
 // Navigate to: /de/user/55
 router.push(UserProfileRoute, { language: 'de', userId: '55' })
 
-// Access route properties:
-router.route?.params.userId // => '55'
-router.route?.params.language // => 'de'
+// Read route properties:
+router.route?.pathname.userId // => '55'
+router.route?.pathname.language // => 'de'
 
 // Use routes in your own mobx models:
 
@@ -105,17 +186,25 @@ class UserProfilePage {
   }
 
   get userId() {
-    return this.route.params?.userId
+    return this.route.pathname?.userId
+  }
+
+  get profileSection() {
+    return this.route.search?.profileSection
   }
 
   setUserId(userId: string) {
     // Uses current route params
-    this.route.push({ userId })
+    this.route.push({ pathname: { userId } })
     //
     // or
     //
     // Explicitly use previous params...
-    this.route.pushExact({ ...this.route.params, userId })
+    this.route.pushExact({ pathname: { ...this.route.pathname, userId} })
+  }
+
+  setProfileSection(profileSection: this['profileSection']) {
+    this.route.push({ search: { profileSection } }) // sets ?profileSection=""
   }
 }
 
