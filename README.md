@@ -72,6 +72,24 @@ const App = observer(() => {
             )`
           }}
         />
+        <button
+          onClick={() =>
+            router.routes.blue.push({
+              pathname: {
+                saturation: Math.max(100, 10 + Number(router.routes.blue.pathname?.saturation ?? 0)).toString()
+              }
+            })
+          }
+        >+ Increase saturation</button>
+        <button
+          onClick={() =>
+            router.routes.blue.push({
+              pathname: {
+                saturation: Math.abs(-10 + Number(router.routes.blue.pathname?.saturation ?? 0)).toString()
+              }
+            })
+          }
+        >- Reduce saturation</button>
       </>}
       {router.route?.key === 'hue' ?? <>
         <label>Hue</label>
@@ -87,6 +105,23 @@ const App = observer(() => {
             )`
           }}
         />
+        <div>
+          <label>Red:</label>
+          <input
+            value={router.routes.hue.search?.hue?.red}
+            onChange={(e) =>
+              router.routes.hue.push({
+                hue: {
+                  ...router.routes.hue.search?.hue ?? {},
+                  red: e.target.value
+                }
+              })
+            }
+          />
+          {
+            /* ... green, blue, alpha ... */
+          }
+        </div>
       </>}
     </>
   )
