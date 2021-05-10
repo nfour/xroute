@@ -8,6 +8,10 @@
   "main": "./x/cjs/index.js",
   "module": "./x/esm/index.js",
   "types": "./x/esm/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nfour/xroute"
+  },
   "scripts": {
     "build": "yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
