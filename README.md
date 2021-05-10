@@ -26,7 +26,7 @@ import * as React from 'react'
 
 const blueRoute = XRoute(
   'blue',
-  '/blue/:saturation/:alpha?', // Optional language param
+  '/blue/:saturation/:alpha?', // Optional param
   {} as {
     pathname: {
       /** 0-100 */
