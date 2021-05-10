@@ -101,7 +101,7 @@ const App = observer(() => {
               ${router.routes.hue.search?.hue?.red ?? '200'},
               ${router.routes.hue.search?.hue?.green ?? '200'},
               ${router.routes.hue.search?.hue?.blue ?? '200'},
-              ${router.routes.hue.search?.alpha ?? '1'},
+              ${router.routes.hue.search?.alpha ?? '1'}
             )`
           }}
         />
