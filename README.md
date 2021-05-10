@@ -21,6 +21,8 @@ Mobx powered `History` router, with types.
 
 ```tsx
 import { XRoute, XRouter } from 'xroute'
+import { observer } from 'mobx-react-lite'
+import * as React from 'react'
 
 const blueRoute = XRoute(
   'blue',
@@ -221,7 +223,7 @@ void (async () => {
 
 // and in react:
 
-import { observer } from 'mobx-react-lite
+import { observer } from 'mobx-react-lite'
 
 const Component = observer(() => {
   const [router] = React.useState(() =>
