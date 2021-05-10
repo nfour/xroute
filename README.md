@@ -17,7 +17,7 @@ Mobx powered `History` router, with types.
 > See the [source for Typescript definition](./xroute.ts)
 > See the [stories for usage examples](./xroute.stories.ts)
 
-## Simple working example, in React
+## Simple example, with React
 
 ```tsx
 import { XRoute, XRouter } from 'xroute'
