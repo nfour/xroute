@@ -170,7 +170,14 @@ export const search_params = () => {
               <dl>
                 <dt>Exact Route 3:</dt>
                 <dd>
-                  <button onClick={() => router.replace('/en')}>
+                  <button
+                    onClick={() =>
+                      router.routes.foo.push({
+                        pathname: { language: 'en' },
+                        search: {},
+                      })
+                    }
+                  >
                     Set exactly: /en/
                   </button>
                 </dd>

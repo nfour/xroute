@@ -158,6 +158,9 @@ export class XRouter {
                 get location() {
                     return { ...location };
                 },
+                get uri() {
+                    return `${location.pathname}${location.search}${location.hash}`;
+                },
                 push: (p) => this.push(route, mergeLocation(p)),
                 pushExact: (p) => this.push(route, p),
                 replace: (p) => this.replace(route, mergeLocation(p)),
@@ -181,11 +184,16 @@ export class XRouter {
     }
     /** Converts a route to a string path. */
     toUri(route, location) {
+        const { pathname, search, hash } = this.toUriParts(route, location);
+        return `${pathname}${search}${hash}`;
+    }
+    /** Converts a route to a { pathname, search, hash } parts. */
+    toUriParts(route, location) {
         var _a, _b, _c;
         const { resource, key } = route;
         try {
             const pathname = compile(resource)({ ...((_a = location === null || location === void 0 ? void 0 : location.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
-            const search = typeof (location === null || location === void 0 ? void 0 : location.search) === 'string'
+            const searchQs = typeof (location === null || location === void 0 ? void 0 : location.search) === 'string'
                 ? location.search
                 : qs.stringify((_b = location === null || location === void 0 ? void 0 : location.search) !== null && _b !== void 0 ? _b : {}, {
                     addQueryPrefix: false,
@@ -194,8 +202,8 @@ export class XRouter {
                     ...(_c = this.config.qs) === null || _c === void 0 ? void 0 : _c.format,
                 });
             const hash = (location === null || location === void 0 ? void 0 : location.hash) ? `#${location.hash}` : '';
-            const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
-            return uri;
+            const search = searchQs ? `?${searchQs}` : '';
+            return { pathname, search, hash };
         }
         catch (error) {
             throw new Error(`INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`);
@@ -215,8 +223,8 @@ export class XRouter {
         if (typeof route === 'string') {
             return this.history[method](route);
         }
-        const path = this.toUri(route, location);
-        this.history[method](path);
+        const { pathname, search, hash } = this.toUriParts(route, location);
+        this.history[method]({ pathname, search, hash });
     }
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */

@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.4.0
+
+- Ensure search & hash location params get reset while iteracting with `history` via workaround
+  - https://github.com/ReactTraining/history/issues/811
+- Can now switch between routes and have the `search` and `hash` reset properly
+
 ## 5.3.1
 
 - Remove a console.log statement

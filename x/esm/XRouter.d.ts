@@ -71,6 +71,12 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     get route(): undefined | ActiveLiveRoute<CONFIG>;
     /** Converts a route to a string path. */
     toUri<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): string;
+    /** Converts a route to a { pathname, search, hash } parts. */
+    toUriParts<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): {
+        pathname: string;
+        search: string;
+        hash: string;
+    };
     /** history.push() a given route */
     push<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): void;
     /** Equal to history.push(pathname) */
@@ -96,10 +102,20 @@ export declare type RouteConfig = ReturnType<typeof XRoute>;
  */
 export interface LiveRoute<CONFIG extends RouteConfig> {
     isActive: boolean;
+    /** pathname variables @example resource `/:foo/:bar` to uri `/1/2` resolves `{ foo: '1', bar: '2' }` */
     pathname?: CONFIG['location']['pathname'];
+    /** search variables @example uri `/?foo=1&bar=2` resolves `{ foo: '1', bar: '2' }` */
     search?: CONFIG['location']['search'];
+    /** the hash string @example `/#foooo` resolves `foooo` */
     hash?: CONFIG['location']['hash'];
+    /** Raw location object for current route state */
     location: Location;
+    /**
+     * The full URI that the current route resolves to.
+     * Essenitally a product of route.toUri(route)
+     * Returns `undefined` when the current route is in an invalid state
+     */
+    uri: undefined | string;
     key: CONFIG['key'];
     resource: CONFIG['resource'];
     config: CONFIG;
