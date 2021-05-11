@@ -304,13 +304,13 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
   toPathExact(location: CONFIG['location']): string;
 }
 
-export interface ActiveLiveRoute<ITEM extends RouteConfig>
-  extends LiveRoute<ITEM> {
+export interface ActiveLiveRoute<CONFIG extends RouteConfig>
+  extends LiveRoute<CONFIG> {
   isActive: true;
 
-  pathname: ITEM['location']['pathname'];
-  search: ITEM['location']['search'];
-  hash: ITEM['location']['hash'];
+  pathname: CONFIG['location']['pathname'];
+  search: CONFIG['location']['search'];
+  hash: CONFIG['location']['hash'];
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
@@ -323,7 +323,7 @@ export function asActiveRoutes<
 export function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
   route: ROUTE,
 ) {
-  return route as undefined | ActiveLiveRoute<Required<NonNullable<ROUTE>>>;
+  return route as undefined | ActiveLiveRoute<NonNullable<ROUTE>['config']>;
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */

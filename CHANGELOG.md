@@ -1,5 +1,8 @@
 # Changelog
 
+## 5.2.0
+
+- Fixes types for active route helper functions
 
 ## 5.1.0
 

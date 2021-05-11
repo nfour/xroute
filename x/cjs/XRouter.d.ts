@@ -110,17 +110,17 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
     toUri(location?: Partial2Deep<CONFIG['location']>): string;
     toPathExact(location: CONFIG['location']): string;
 }
-export interface ActiveLiveRoute<ITEM extends RouteConfig> extends LiveRoute<ITEM> {
+export interface ActiveLiveRoute<CONFIG extends RouteConfig> extends LiveRoute<CONFIG> {
     isActive: true;
-    pathname: ITEM['location']['pathname'];
-    search: ITEM['location']['search'];
-    hash: ITEM['location']['hash'];
+    pathname: CONFIG['location']['pathname'];
+    search: CONFIG['location']['search'];
+    hash: CONFIG['location']['hash'];
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined)[];
-export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
+export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined)[];
+export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<Required<NonNullable<ROUTE>>> | undefined;
+export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined;
 declare type Partial2Deep<T> = {
     [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
 };
