@@ -199,7 +199,6 @@ class XRouter {
                 });
             const hash = (location === null || location === void 0 ? void 0 : location.hash) ? `#${location.hash}` : '';
             const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
-            console.log({ nextUri: uri, search, location });
             return uri;
         }
         catch (error) {

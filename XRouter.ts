@@ -211,8 +211,6 @@ export class XRouter<
       const hash = location?.hash ? `#${location.hash}` : '';
       const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
 
-      console.log({ nextUri: uri, search, location });
-
       return uri;
     } catch (error) {
       throw new Error(

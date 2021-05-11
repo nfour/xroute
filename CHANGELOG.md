@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.1
+
+- Remove a console.log statement
+  
 ## 5.3.0
 
 - Correctly rename `toPathExact` to `toUriExact` as it should be for v5
