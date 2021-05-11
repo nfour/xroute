@@ -234,7 +234,7 @@ export const shared_language_params = () => {
                           <button
                             onClick={() =>
                               router.route?.push({
-                                pathname: { language: 'de' },
+                                pathname: { language },
                               })
                             }
                           >
