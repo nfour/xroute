@@ -8,6 +8,7 @@ Mobx powered `History` router, with types.
 - [x] Type safe `pathname` params
 - [x] Type safe `search` params via `qs` serialization
 - [x] Type safe `hash` string
+- [x] Known issues with History: [Here](https://github.com/ReactTraining/history/issues/811)
 - [ ] (Future) Automatic type acquisition from pathname string literal
 
 ## Usage

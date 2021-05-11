@@ -163,6 +163,9 @@ export class XRouter<
         get location() {
           return { ...location };
         },
+        get uri() {
+          return `${location.pathname}${location.search}${location.hash}`;
+        },
         push: (p: {}) => this.push(route, mergeLocation(p)),
         pushExact: (p: {}) => this.push(route, p),
         replace: (p: {}) => this.replace(route, mergeLocation(p)),
@@ -192,13 +195,23 @@ export class XRouter<
     route: ROUTE,
     location?: Partial2Deep<ROUTE['location']>,
   ) {
+    const { pathname, search, hash } = this.toUriParts(route, location);
+
+    return `${pathname}${search}${hash}`;
+  }
+
+  /** Converts a route to a { pathname, search, hash } parts. */
+  toUriParts<ROUTE extends CONFIG>(
+    route: ROUTE,
+    location?: Partial2Deep<ROUTE['location']>,
+  ) {
     const { resource, key } = route;
 
     try {
       const pathname =
         compile(resource)({ ...(location?.pathname ?? {}) }) || '/';
 
-      const search =
+      const searchQs =
         typeof location?.search === 'string'
           ? location.search
           : qs.stringify(location?.search ?? {}, {
@@ -209,9 +222,9 @@ export class XRouter<
             });
 
       const hash = location?.hash ? `#${location.hash}` : '';
-      const uri = `${pathname}${search ? `?${search}` : ''}${hash}`;
+      const search = searchQs ? `?${searchQs}` : '';
 
-      return uri;
+      return { pathname, search, hash };
     } catch (error) {
       throw new Error(
         `INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`,
@@ -268,9 +281,9 @@ export class XRouter<
       return this.history[method](route);
     }
 
-    const path = this.toUri(route, location);
+    const { pathname, search, hash } = this.toUriParts(route, location);
 
-    this.history[method](path);
+    this.history[method]({ pathname, search, hash });
   }
 }
 
@@ -283,11 +296,21 @@ export type RouteConfig = ReturnType<typeof XRoute>;
 export interface LiveRoute<CONFIG extends RouteConfig> {
   isActive: boolean;
 
+  /** pathname variables @example resource `/:foo/:bar` to uri `/1/2` resolves `{ foo: '1', bar: '2' }` */
   pathname?: CONFIG['location']['pathname'];
+  /** search variables @example uri `/?foo=1&bar=2` resolves `{ foo: '1', bar: '2' }` */
   search?: CONFIG['location']['search'];
+  /** the hash string @example `/#foooo` resolves `foooo` */
   hash?: CONFIG['location']['hash'];
 
+  /** Raw location object for current route state */
   location: Location;
+  /**
+   * The full URI that the current route resolves to.
+   * Essenitally a product of route.toUri(route)
+   * Returns `undefined` when the current route is in an invalid state
+   */
+  uri: undefined | string;
 
   key: CONFIG['key'];
   resource: CONFIG['resource'];

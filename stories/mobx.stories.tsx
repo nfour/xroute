@@ -79,12 +79,6 @@ export const search_params = () => {
             a: `${Date.now()}`,
             b: { x: '1' },
           });
-          const uriText = route.toUri({
-            pathname: {
-              language: 'da',
-            },
-            search,
-          });
 
           React.useEffect(() => {
             console.log('new');
@@ -95,60 +89,93 @@ export const search_params = () => {
             });
           }, [search]);
 
-          console.log('foo', route);
-
           return (
-            <dl>
-              <dt>
-                Search Params.toPath():
-                <br />
-                <label>a</label>
-                <input
-                  value={search.a}
-                  onChange={(e) =>
-                    setSearch({
-                      ...search,
-                      a: e.target.value,
-                    })
-                  }
-                />
-                <label>b.x</label>
-                <input
-                  value={search.b.x}
-                  onChange={(e) =>
-                    setSearch({
-                      ...search,
-                      b: {
-                        ...search.b,
-                        x: e.target.value,
+            <>
+              <dl>
+                <dt>ACTIVE ROUTE:</dt>
+                <dd>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        search: route.search,
+                        pathname: route.pathname,
+                        hash: route.hash,
                       },
-                    })
-                  }
-                />
-              </dt>
-              <dd>
-                <dl>
-                  <dt>URI:</dt>
-                  <dd>{uriText}</dd>
-                </dl>
-                <dl>
-                  <dt>Route as JSON:</dt>
-                  <dd>
-                    <pre>
-                      {JSON.stringify(
-                        {
-                          search: route.search,
-                          pathname: route.pathname,
-                          hash: route.hash,
+                      null,
+                      2,
+                    )}
+                  </pre>
+                </dd>
+                <dd>{route.uri}</dd>
+              </dl>
+              <dl>
+                <dt>
+                  toUri()
+                  <br />
+                  <label>a</label>
+                  <input
+                    value={search.a}
+                    onChange={(e) =>
+                      setSearch({
+                        ...search,
+                        a: e.target.value,
+                      })
+                    }
+                  />
+                  <label>b.x</label>
+                  <input
+                    value={search.b.x}
+                    onChange={(e) =>
+                      setSearch({
+                        ...search,
+                        b: {
+                          ...search.b,
+                          x: e.target.value,
                         },
-                        null,
-                        2,
-                      )}
-                    </pre>
-                  </dd>
-                </dl>
-              </dd>
-            </dl>
+                      })
+                    }
+                  />
+                </dt>
+              </dl>
+              <dl>
+                <dt>Exact Route 1:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      route.pushExact({
+                        pathname: { language: 'en' },
+                        search: { a: '1' },
+                      })
+                    }
+                  >
+                    Set exactly: /en/?a=1
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Exact Route 2:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      route.pushExact({
+                        pathname: { language: 'en' },
+                        search: { b: { x: '2' } },
+                      })
+                    }
+                  >
+                    Set exactly: /en/?b[x]=2
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Exact Route 3:</dt>
+                <dd>
+                  <button onClick={() => router.replace('/en')}>
+                    Set exactly: /en/
+                  </button>
+                </dd>
+              </dl>
+            </>
           );
         }}
       </Observer>

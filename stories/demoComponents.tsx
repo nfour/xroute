@@ -10,18 +10,18 @@ export const demoRoutes = () => {
   const FooRoute = XRoute(
     'foo',
     `/${languageParam}/foo`,
-    {} as { pathname: { language: ILanguage } },
+    {} as { pathname: { language: ILanguage }; search: {} },
   );
   const BazRoute = XRoute(
     'baz',
     `/${languageParam}/baz`,
-    {} as { pathname: { language: ILanguage } },
+    {} as { pathname: { language: ILanguage }; search: {} },
   );
 
   const DefaultRoute = XRoute(
     'default',
     '/:language?',
-    {} as { pathname: { language?: ILanguage } },
+    {} as { pathname: { language?: ILanguage }; search: {} },
   );
 
   return {
@@ -90,7 +90,9 @@ export const SharedLanguageDemo = ({
                     <>
                       <div>
                         <button
-                          onClick={() => router.route?.push({ language })}
+                          onClick={() =>
+                            router.route?.push({ pathname: { language } })
+                          }
                         >
                           {language}
                         </button>
