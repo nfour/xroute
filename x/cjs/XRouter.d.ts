@@ -108,7 +108,7 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
     replace(location?: Partial2Deep<CONFIG['location']>): void;
     replaceExact(location: CONFIG['location']): void;
     toUri(location?: Partial2Deep<CONFIG['location']>): string;
-    toPathExact(location: CONFIG['location']): string;
+    toUriExact(location: CONFIG['location']): string;
 }
 export interface ActiveLiveRoute<CONFIG extends RouteConfig> extends LiveRoute<CONFIG> {
     isActive: true;

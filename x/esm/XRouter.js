@@ -163,7 +163,7 @@ export class XRouter {
                 replace: (p) => this.replace(route, mergeLocation(p)),
                 replaceExact: (p) => this.replace(route, p),
                 toUri: (p) => this.toUri(route, mergeLocation(p)),
-                toPathExact: (p) => this.toUri(route, p),
+                toUriExact: (p) => this.toUri(route, p),
             };
             return { ...routes, [key]: newRoute };
         }, {});

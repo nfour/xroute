@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.0
+
+- Correctly rename `toPathExact` to `toUriExact` as it should be for v5
+  
 ## 5.2.0
 
 - Fixes types for active route helper functions

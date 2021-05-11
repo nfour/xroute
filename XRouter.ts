@@ -168,7 +168,7 @@ export class XRouter<
         replace: (p: {}) => this.replace(route, mergeLocation(p)),
         replaceExact: (p: {}) => this.replace(route, p),
         toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
-        toPathExact: (p: {}) => this.toUri(route, p),
+        toUriExact: (p: {}) => this.toUri(route, p),
       };
 
       return { ...routes, [key]: newRoute };
@@ -301,7 +301,7 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
   replaceExact(location: CONFIG['location']): void;
 
   toUri(location?: Partial2Deep<CONFIG['location']>): string;
-  toPathExact(location: CONFIG['location']): string;
+  toUriExact(location: CONFIG['location']): string;
 }
 
 export interface ActiveLiveRoute<CONFIG extends RouteConfig>
