@@ -1,5 +1,29 @@
 # Changelog
 
+## 6.0.0
+
+- Allow for search params to inherit shallow props when changing within the same route.
+  - > Note: Switching between different routes will still NOT preserve properties in `search`).
+  - Old behaviour:
+     ```ts
+      router.routes.a.push({ search: { a: 1 } })
+      // /a/?a=1
+      router.routes.a.push({ search: { b: 2 } })
+      // /a/?b=1
+     ```
+  - New behaviour:
+     ```ts
+      router.routes.a.push({ search: { a: 1 } })
+      // /a/?a=1
+      router.routes.a.push({ search: { b: 2 } })
+      // /a/?a=1&b=1
+
+      // Moving to a new route will NOT keep old variables - this would be too confusing to keep track of
+      router.routes.b.push({ search: { z: 1 } })
+      // /b/?z=1
+     ```
+  - Remember, you can use `.pushExact({ search: { } })` to ignore old properties.
+
 ## 5.4.0
 
 - Ensure search & hash location params get reset while iteracting with `history` via workaround
