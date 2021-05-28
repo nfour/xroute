@@ -129,14 +129,17 @@ export class XRouter {
             })(location.pathname);
             const { index, params: pathname } = matched || {};
             const mergeLocation = (p = {}) => {
-                var _a, _b, _c;
+                var _a, _b, _c, _d;
                 return ({
                     pathname: {
                         ...(_a = this.route) === null || _a === void 0 ? void 0 : _a.pathname,
                         ...p.pathname,
                     },
-                    search: { ...p.search },
-                    hash: (_b = p.hash) !== null && _b !== void 0 ? _b : (_c = this.route) === null || _c === void 0 ? void 0 : _c.hash,
+                    search: {
+                        ...(((_b = this.route) === null || _b === void 0 ? void 0 : _b.key) === route.key ? this.route.search : {}),
+                        ...p.search,
+                    },
+                    hash: (_c = p.hash) !== null && _c !== void 0 ? _c : (_d = this.route) === null || _d === void 0 ? void 0 : _d.hash,
                 });
             };
             const isActive = isAlreadyMatched === false && index !== undefined;
