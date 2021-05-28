@@ -1,6 +1,6 @@
 # Changelog
 
-## 6.0.0
+## 6.0.1
 
 - Allow for search params to inherit shallow props when changing within the same route.
   - > Note: Switching between different routes will still NOT preserve properties in `search`).
