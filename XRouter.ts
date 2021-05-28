@@ -138,7 +138,10 @@ export class XRouter<
           ...(this.route?.pathname as {} | undefined),
           ...p.pathname,
         },
-        search: { ...p.search },
+        search: {
+          ...(this.route?.key === route.key ? this.route.search : {}),
+          ...p.search,
+        },
         hash: p.hash ?? this.route?.hash,
       });
 

@@ -20,6 +20,14 @@ const FooRoute = XRoute(
     search: { a?: string; b?: { x: string } };
   },
 );
+const FooBarRoute = XRoute(
+  'foobar',
+  `/${languageParam}/foobar`,
+  {} as {
+    pathname: { language: ILanguage };
+    search: { a?: string; zzz?: string };
+  },
+);
 const BazRoute = XRoute(
   'baz',
   `/${languageParam}/baz/:baz`,
@@ -67,7 +75,10 @@ export const to_path = () => {
 export const search_params = () => {
   const [router] = React.useState(
     () =>
-      new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
+      new XRouter(
+        [FooRoute, BazRoute, FooBarRoute, DefaultRoute],
+        createMemoryHistory(),
+      ),
   );
 
   return (
@@ -175,6 +186,74 @@ export const search_params = () => {
                       router.routes.foo.push({
                         pathname: { language: 'en' },
                         search: {},
+                      })
+                    }
+                  >
+                    Set exactly: /en/
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Add `b` to foo:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.foo.push({
+                        pathname: { language: 'en' },
+                        search: {
+                          b: { x: '111' },
+                        },
+                      })
+                    }
+                  >
+                    Set exactly: /en/
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Add `a` to foo:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.foo.push({
+                        pathname: { language: 'en' },
+                        search: {
+                          a: '222',
+                        },
+                      })
+                    }
+                  >
+                    Set exactly: /en/
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Add `a` to foobar:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.foobar.push({
+                        pathname: { language: 'en' },
+                        search: {
+                          a: '222',
+                        },
+                      })
+                    }
+                  >
+                    Set exactly: /en/
+                  </button>
+                </dd>
+              </dl>
+              <dl>
+                <dt>Add `zzz` to foobar:</dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.foobar.push({
+                        pathname: { language: 'en' },
+                        search: {
+                          zzz: '111',
+                        },
                       })
                     }
                   >
