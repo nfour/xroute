@@ -1,5 +1,15 @@
 # Changelog
 
+## 6.1.0
+
+- Add missing `qs` dependency
+- Remove unecessary deps
+
+### Internal
+
+- Using `pnpm` instead of `yarn`
+- Using `vite` instead of `snowpack`
+
 ## 6.0.1
 
 - Allow for search params to inherit shallow props when changing within the same route.

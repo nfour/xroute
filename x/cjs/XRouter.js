@@ -71,11 +71,11 @@ class XRouter {
         this.definition = definition;
         this.history = history;
         this.config = config;
-        mobx_1.makeAutoObservable(this);
+        (0, mobx_1.makeAutoObservable)(this);
         this.startReacting();
     }
     setLocation(location) {
-        if (isEqual_1.default(this.location, location))
+        if ((0, isEqual_1.default)(this.location, location))
             return;
         this.location = { ...location };
     }
@@ -84,8 +84,8 @@ class XRouter {
         this.stopReacting();
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
-        this.stopReactingToLocation = mobx_1.reaction(() => this.location, (location) => {
-            if (isEqual_1.default(this.history.location, location))
+        this.stopReactingToLocation = (0, mobx_1.reaction)(() => this.location, (location) => {
+            if ((0, isEqual_1.default)(this.history.location, location))
                 return;
             this.history.replace({ ...location });
         });
@@ -127,7 +127,7 @@ class XRouter {
             var _a, _b;
             const route = _route;
             const { key, resource } = route;
-            const matched = path_to_regexp_1.match(resource, {
+            const matched = (0, path_to_regexp_1.match)(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
             })(location.pathname);
@@ -199,7 +199,7 @@ class XRouter {
         var _a, _b, _c;
         const { resource, key } = route;
         try {
-            const pathname = path_to_regexp_1.compile(resource)({ ...((_a = location === null || location === void 0 ? void 0 : location.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
+            const pathname = (0, path_to_regexp_1.compile)(resource)({ ...((_a = location === null || location === void 0 ? void 0 : location.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
             const searchQs = typeof (location === null || location === void 0 ? void 0 : location.search) === 'string'
                 ? location.search
                 : qs.stringify((_b = location === null || location === void 0 ? void 0 : location.search) !== null && _b !== void 0 ? _b : {}, {
