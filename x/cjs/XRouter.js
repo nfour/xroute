@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
-const lodash_es_1 = require("lodash-es");
+const lodash_1 = require("lodash");
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
@@ -75,7 +75,7 @@ class XRouter {
         this.startReacting();
     }
     setLocation(location) {
-        if ((0, lodash_es_1.isEqual)(this.location, location))
+        if ((0, lodash_1.isEqual)(this.location, location))
             return;
         this.location = { ...location };
     }
@@ -85,7 +85,7 @@ class XRouter {
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
         this.stopReactingToLocation = (0, mobx_1.reaction)(() => this.location, (location) => {
-            if ((0, lodash_es_1.isEqual)(this.history.location, location))
+            if ((0, lodash_1.isEqual)(this.history.location, location))
                 return;
             this.history.replace({ ...location });
         });

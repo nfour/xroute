@@ -1,5 +1,5 @@
 import { History, Location } from 'history';
-import { isEqual } from 'lodash-es';
+import { isEqual } from 'lodash';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 import * as qs from 'qs';
