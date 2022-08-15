@@ -38,6 +38,14 @@ export class XRouter {
                 search: '',
             }
         });
+        Object.defineProperty(this, "getLocationProperies", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: ({ hash, pathname, search, }) => {
+                return { pathname, search, hash };
+            }
+        });
         Object.defineProperty(this, "go", {
             enumerable: true,
             configurable: true,
@@ -65,17 +73,18 @@ export class XRouter {
         this.definition = definition;
         this.history = history;
         this.config = config;
-        makeAutoObservable(this);
+        makeAutoObservable(this, {
+            history: false,
+            definition: false,
+            config: false,
+        });
         this.startReacting();
     }
-    setLocation(location) {
+    setLocation(inputLocation) {
+        const location = this.getLocationProperies(inputLocation);
         if (isEqual(this.location, location))
             return;
-        this.location = {
-            pathname: location.pathname,
-            search: location.search,
-            hash: location.hash,
-        };
+        this.location = this.getLocationProperies(location);
     }
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting() {
@@ -83,13 +92,9 @@ export class XRouter {
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
         this.stopReactingToLocation = reaction(() => this.location, (location) => {
-            if (isEqual(this.history.location, location))
+            if (isEqual(this.getLocationProperies(this.history.location), location))
                 return;
-            this.history.replace({
-                pathname: location.pathname,
-                search: location.search,
-                hash: location.hash,
-            });
+            this.history.replace(location);
         });
     }
     /** Stop reacting to all changes - disposer. */

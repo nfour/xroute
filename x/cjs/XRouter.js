@@ -42,6 +42,14 @@ class XRouter {
                 search: '',
             }
         });
+        Object.defineProperty(this, "getLocationProperies", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: ({ hash, pathname, search, }) => {
+                return { pathname, search, hash };
+            }
+        });
         Object.defineProperty(this, "go", {
             enumerable: true,
             configurable: true,
@@ -69,17 +77,18 @@ class XRouter {
         this.definition = definition;
         this.history = history;
         this.config = config;
-        (0, mobx_1.makeAutoObservable)(this);
+        (0, mobx_1.makeAutoObservable)(this, {
+            history: false,
+            definition: false,
+            config: false,
+        });
         this.startReacting();
     }
-    setLocation(location) {
+    setLocation(inputLocation) {
+        const location = this.getLocationProperies(inputLocation);
         if ((0, lodash_1.isEqual)(this.location, location))
             return;
-        this.location = {
-            pathname: location.pathname,
-            search: location.search,
-            hash: location.hash,
-        };
+        this.location = this.getLocationProperies(location);
     }
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting() {
@@ -87,13 +96,9 @@ class XRouter {
         this.setLocation(this.history.location);
         this.stopReactingToHistory = this.history.listen(({ location }) => this.setLocation(location));
         this.stopReactingToLocation = (0, mobx_1.reaction)(() => this.location, (location) => {
-            if ((0, lodash_1.isEqual)(this.history.location, location))
+            if ((0, lodash_1.isEqual)(this.getLocationProperies(this.history.location), location))
                 return;
-            this.history.replace({
-                pathname: location.pathname,
-                search: location.search,
-                hash: location.hash,
-            });
+            this.history.replace(location);
         });
     }
     /** Stop reacting to all changes - disposer. */
