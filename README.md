@@ -276,10 +276,9 @@ const Component = observer(() => {
     {router.routes.userProfile.isActive &&
       <div>
         User Profile!
-        UserID: {router.route.userProfile.params?.userId}
+        UserID: {router.route.userProfile.pathname?.userId}
       </div>
     }
-
   </>
 })
 
@@ -291,10 +290,8 @@ import { reaction } from 'mobx'
 const listenToUserProfileRoute = () => {
   let previousIsActive: boolean;
 
-  reaction(() => router.routes.userProfile.isActive, () => {
-    const { isActive } = router.routes.userProfile
-
-    if (isActive === previousIsActive) return
+  reaction(() => router.routes.userProfile.isActive, (isActive) => {
+    if (isActive === previousIsActive) return // Ignore same state
 
     previousIsActive = isActive
 
@@ -309,10 +306,3 @@ const listenToUserProfileRoute = () => {
 }
 ```
 
-## Contributing
-
-1. Clone the repo
-2. Run Storybook:
-```
-yarn && yarn dev
-```
