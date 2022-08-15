@@ -64,7 +64,11 @@ export class XRouter<
   public setLocation(location: this['location']) {
     if (isEqual(this.location, location)) return;
 
-    this.location = { ...location };
+    this.location = {
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+    };
   }
 
   /** Start reacting to changes. This is automatically called on construction. */
