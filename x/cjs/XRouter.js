@@ -84,10 +84,7 @@ class XRouter {
         });
         this.startReacting();
     }
-    setLocation(inputLocation) {
-        const location = this.getLocationProperies(inputLocation);
-        if ((0, lodash_1.isEqual)(this.location, location))
-            return;
+    setLocation(location) {
         this.location = this.getLocationProperies(location);
     }
     /** Start reacting to changes. This is automatically called on construction. */

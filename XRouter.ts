@@ -73,11 +73,7 @@ export class XRouter<
     return { pathname, search, hash };
   };
 
-  public setLocation(inputLocation: this['location']) {
-    const location = this.getLocationProperies(inputLocation);
-
-    if (isEqual(this.location, location)) return;
-
+  public setLocation(location: this['location']) {
     this.location = this.getLocationProperies(location);
   }
 

@@ -39,7 +39,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
         };
     });
     private getLocationProperies;
-    setLocation(inputLocation: this['location']): void;
+    setLocation(location: this['location']): void;
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting(): void;
     /** Stop reacting to all changes - disposer. */
