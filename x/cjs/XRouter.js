@@ -75,7 +75,11 @@ class XRouter {
     setLocation(location) {
         if ((0, lodash_1.isEqual)(this.location, location))
             return;
-        this.location = { ...location };
+        this.location = {
+            pathname: location.pathname,
+            search: location.search,
+            hash: location.hash,
+        };
     }
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting() {
