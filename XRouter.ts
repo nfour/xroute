@@ -56,19 +56,29 @@ export class XRouter<
     this.history = history;
     this.config = config;
 
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      history: false,
+      definition: false,
+      config: false,
+    });
 
     this.startReacting();
   }
 
-  public setLocation(location: this['location']) {
+  private getLocationProperies = ({
+    hash,
+    pathname,
+    search,
+  }: this['location']) => {
+    return { pathname, search, hash };
+  };
+
+  public setLocation(inputLocation: this['location']) {
+    const location = this.getLocationProperies(inputLocation);
+
     if (isEqual(this.location, location)) return;
 
-    this.location = {
-      pathname: location.pathname,
-      search: location.search,
-      hash: location.hash,
-    };
+    this.location = this.getLocationProperies(location);
   }
 
   /** Start reacting to changes. This is automatically called on construction. */
@@ -83,13 +93,10 @@ export class XRouter<
     this.stopReactingToLocation = reaction(
       () => this.location,
       (location) => {
-        if (isEqual(this.history.location, location)) return;
+        if (isEqual(this.getLocationProperies(this.history.location), location))
+          return;
 
-        this.history.replace({
-          pathname: location.pathname,
-          search: location.search,
-          hash: location.hash,
-        });
+        this.history.replace(location);
       },
     );
   }
