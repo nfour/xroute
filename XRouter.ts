@@ -1,4 +1,4 @@
-import { History, Location } from 'history';
+import { History } from 'history';
 import { isEqual } from 'lodash';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
@@ -34,10 +34,8 @@ export class XRouter<
   /** The synced location object. Also available within `this.routes[route].location`. */
   public location: Location = {
     hash: '',
-    key: '',
     pathname: '',
     search: '',
-    state: {},
   };
 
   public stopReactingToHistory?(): void;
@@ -63,7 +61,7 @@ export class XRouter<
     this.startReacting();
   }
 
-  public setLocation(location: Location) {
+  public setLocation(location: this['location']) {
     if (isEqual(this.location, location)) return;
 
     this.location = { ...location };
@@ -83,7 +81,11 @@ export class XRouter<
       (location) => {
         if (isEqual(this.history.location, location)) return;
 
-        this.history.replace({ ...location });
+        this.history.replace({
+          pathname: location.pathname,
+          search: location.search,
+          hash: location.hash,
+        });
       },
     );
   }
@@ -129,7 +131,7 @@ export class XRouter<
       const matched = match(resource, {
         decode: decodeURI,
         encode: encodeURI,
-      })(location.pathname);
+      })(location.pathname ?? '');
 
       const { index, params: pathname } = matched || {};
 
@@ -291,6 +293,12 @@ export class XRouter<
 }
 
 export type RouteConfig = ReturnType<typeof XRoute>;
+
+interface Location {
+  hash: undefined | string;
+  pathname: undefined | string;
+  search: undefined | string;
+}
 
 /**
  * A "live" route, typically found at:

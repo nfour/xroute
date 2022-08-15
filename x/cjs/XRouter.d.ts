@@ -1,4 +1,4 @@
-import { History, Location } from 'history';
+import { History } from 'history';
 import * as qs from 'qs';
 /** Create a typed route config object */
 export declare const XRoute: <KEY extends string, RESOURCE extends string, LOCATION extends {
@@ -38,7 +38,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
             format?: qs.IStringifyOptions;
         };
     });
-    setLocation(location: Location): void;
+    setLocation(location: this['location']): void;
     /** Start reacting to changes. This is automatically called on construction. */
     startReacting(): void;
     /** Stop reacting to all changes - disposer. */
@@ -96,6 +96,11 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     protected navigate<ROUTE_DEF extends CONFIG>(route: ROUTE_DEF | string, location?: Partial2Deep<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
 }
 export declare type RouteConfig = ReturnType<typeof XRoute>;
+interface Location {
+    hash: undefined | string;
+    pathname: undefined | string;
+    search: undefined | string;
+}
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute

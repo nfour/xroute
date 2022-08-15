@@ -34,10 +34,8 @@ export class XRouter {
             writable: true,
             value: {
                 hash: '',
-                key: '',
                 pathname: '',
                 search: '',
-                state: {},
             }
         });
         Object.defineProperty(this, "go", {
@@ -83,7 +81,11 @@ export class XRouter {
         this.stopReactingToLocation = reaction(() => this.location, (location) => {
             if (isEqual(this.history.location, location))
                 return;
-            this.history.replace({ ...location });
+            this.history.replace({
+                pathname: location.pathname,
+                search: location.search,
+                hash: location.hash,
+            });
         });
     }
     /** Stop reacting to all changes - disposer. */
@@ -120,13 +122,13 @@ export class XRouter {
         // TODO: Should it be configurable to allow multiple matches?
         let isAlreadyMatched = false;
         return this.definition.reduce((routes, _route) => {
-            var _a, _b;
+            var _a, _b, _c;
             const route = _route;
             const { key, resource } = route;
             const matched = match(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
-            })(location.pathname);
+            })((_a = location.pathname) !== null && _a !== void 0 ? _a : '');
             const { index, params: pathname } = matched || {};
             const mergeLocation = (p = {}) => {
                 var _a, _b, _c, _d;
@@ -145,9 +147,9 @@ export class XRouter {
             const isActive = isAlreadyMatched === false && index !== undefined;
             if (isActive)
                 isAlreadyMatched = true;
-            const search = qs.parse((_a = location.search) !== null && _a !== void 0 ? _a : '', {
+            const search = qs.parse((_b = location.search) !== null && _b !== void 0 ? _b : '', {
                 ignoreQueryPrefix: true,
-                ...(_b = this.config.qs) === null || _b === void 0 ? void 0 : _b.parse,
+                ...(_c = this.config.qs) === null || _c === void 0 ? void 0 : _c.parse,
             });
             // TODO: convert to a class LiveRoute {}
             const newRoute = {
