@@ -196,9 +196,11 @@ export class XRouter<
 
     // Get routes in order.
     for (const { key } of this.definition) {
-      const route = this.routes[key as keyof this['routes']];
+      const route = this.routes[
+        key as keyof this['routes']
+      ] as ActiveLiveRoute<CONFIG>;
 
-      if (route.isActive) return route as any;
+      if (route.isActive) return route;
     }
   }
 
@@ -359,10 +361,10 @@ export function asActiveRoutes<
   return routes.map(asActiveRoute);
 }
 
-export function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(
-  route: ROUTE,
+export function asActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(
+  route: undefined | ROUTE,
 ) {
-  return route as undefined | ActiveLiveRoute<NonNullable<ROUTE>['config']>;
+  return route as undefined | ActiveLiveRoute<ROUTE['config']>;
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */

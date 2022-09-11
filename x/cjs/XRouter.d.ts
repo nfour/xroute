@@ -139,10 +139,26 @@ export interface ActiveLiveRoute<CONFIG extends RouteConfig> extends LiveRoute<C
     hash: CONFIG['location']['hash'];
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined)[];
-export declare function asActiveRoute<ROUTE extends undefined | LiveRoute<any>>(route: ROUTE): ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined;
+export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<{
+    key: string;
+    resource: string;
+    location: {
+        pathname: {};
+        search: {};
+        hash?: string | undefined;
+    };
+}> | undefined)[];
+export declare function asActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(route: undefined | ROUTE): ActiveLiveRoute<ROUTE["config"]> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<NonNullable<ROUTE>["config"]> | undefined;
+export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<{
+    key: string;
+    resource: string;
+    location: {
+        pathname: {};
+        search: {};
+        hash?: string | undefined;
+    };
+}> | undefined;
 declare type Partial2Deep<T> = {
     [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
 };
