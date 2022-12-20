@@ -96,7 +96,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
      */
     protected navigate<ROUTE_DEF extends CONFIG>(route: ROUTE_DEF | string, location?: Partial2Deep<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
 }
-export declare type RouteConfig = ReturnType<typeof XRoute>;
+export type RouteConfig = ReturnType<typeof XRoute>;
 interface Location {
     hash: undefined | string;
     pathname: undefined | string;
@@ -139,27 +139,11 @@ export interface ActiveLiveRoute<CONFIG extends RouteConfig> extends LiveRoute<C
     hash: CONFIG['location']['hash'];
 }
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export declare function asActiveRoutes<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): (ActiveLiveRoute<{
-    key: string;
-    resource: string;
-    location: {
-        pathname: {};
-        search: {};
-        hash?: string | undefined;
-    };
-}> | undefined)[];
+export declare function asActiveRoutes<ROUTE extends LiveRoute<RouteConfig>>(routes: (undefined | ROUTE)[]): (ActiveLiveRoute<ROUTE["config"]> | undefined)[];
 export declare function asActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(route: undefined | ROUTE): ActiveLiveRoute<ROUTE["config"]> | undefined;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export declare function findActiveRoute<ROUTE extends undefined | LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<{
-    key: string;
-    resource: string;
-    location: {
-        pathname: {};
-        search: {};
-        hash?: string | undefined;
-    };
-}> | undefined;
-declare type Partial2Deep<T> = {
+export declare function findActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(routes: ROUTE[]): ActiveLiveRoute<ROUTE["config"]> | undefined;
+type Partial2Deep<T> = {
     [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
 };
 export {};

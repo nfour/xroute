@@ -353,9 +353,9 @@ export interface ActiveLiveRoute<CONFIG extends RouteConfig>
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
-export function asActiveRoutes<
-  ROUTE extends undefined | LiveRoute<RouteConfig>,
->(routes: ROUTE[]) {
+export function asActiveRoutes<ROUTE extends LiveRoute<RouteConfig>>(
+  routes: (undefined | ROUTE)[],
+) {
   return routes.map(asActiveRoute)
 }
 
@@ -366,9 +366,9 @@ export function asActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
-export function findActiveRoute<
-  ROUTE extends undefined | LiveRoute<RouteConfig>,
->(routes: ROUTE[]) {
+export function findActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(
+  routes: ROUTE[],
+) {
   return asActiveRoutes(routes).find((r) => r?.isActive)
 }
 

@@ -1,7 +1,7 @@
 import { createBrowserHistory, createMemoryHistory } from 'history'
 import { Observer, observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { XRoute, XRouter } from '../XRouter'
+import { findActiveRoute, XRoute, XRouter } from '../XRouter'
 
 export default {
   title: 'XRouter Mobx',
@@ -157,6 +157,15 @@ export const Search_params = () => {
               search,
             })
           }, [search])
+
+          const activeRouteTest = findActiveRoute([
+            router.routes.foo,
+            router.routes.foobar,
+            router.routes.baz,
+            router.routes.default,
+          ])
+
+          activeRouteTest // Testing types
 
           return (
             <>
