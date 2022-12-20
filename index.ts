@@ -1,1 +1,1 @@
-export * from './XRouter';
+export * from './XRouter'

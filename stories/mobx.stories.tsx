@@ -1,51 +1,54 @@
-import { createMemoryHistory } from 'history';
-import { Observer, observer } from 'mobx-react-lite';
-import * as React from 'react';
-import { XRoute, XRouter } from '../XRouter';
+import { createBrowserHistory, createMemoryHistory } from 'history'
+import { Observer, observer } from 'mobx-react-lite'
+import * as React from 'react'
+import { XRoute, XRouter } from '../XRouter'
 
 export default {
   title: 'XRouter Mobx',
-};
+}
 
-const validLanguages = ['en', 'da', 'de'] as const;
-const languageParam = `:language(${validLanguages.join('|')})`;
+const validLanguages = ['en', 'da', 'de'] as const
+const languageParam = `:language(${validLanguages.join('|')})`
 
-type ILanguage = typeof validLanguages[number];
+type ILanguage = typeof validLanguages[number]
 
 const FooRoute = XRoute(
   'foo',
   `/${languageParam}/foo`,
   {} as {
-    pathname: { language: ILanguage };
-    search: { a?: string; b?: { x: string } };
+    pathname: { language: ILanguage }
+    search: { a?: string; b?: { x: string } }
+    hash?: string
   },
-);
+)
+
 const FooBarRoute = XRoute(
   'foobar',
   `/${languageParam}/foobar`,
   {} as {
-    pathname: { language: ILanguage };
-    search: { a?: string; zzz?: string };
+    pathname: { language: ILanguage }
+    search: { a?: string; zzz?: string }
   },
-);
+)
+
 const BazRoute = XRoute(
   'baz',
   `/${languageParam}/baz/:baz`,
   {} as { pathname: { language: ILanguage; baz: string }; search: {} },
-);
+)
 
 const DefaultRoute = XRoute(
   'default',
   '/:language?',
   {} as { pathname: { language?: ILanguage }; search: {} },
-);
+)
 
-export const to_path = () => {
+export const To_path = () => {
   const Component = () => {
     const [router] = React.useState(
       () =>
         new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
-    );
+    )
 
     return (
       <ul>
@@ -62,43 +65,98 @@ export const to_path = () => {
           </textarea>
         </li>
       </ul>
-    );
-  };
+    )
+  }
 
   return (
     <>
       <Component />
     </>
-  );
-};
+  )
+}
 
-export const search_params = () => {
+export const Hash_history = () => {
+  const [router] = React.useState(
+    () =>
+      new XRouter(
+        [FooRoute, BazRoute, FooBarRoute, DefaultRoute],
+        createBrowserHistory(),
+      ),
+  )
+
+  return (
+    <>
+      <Observer>
+        {() => (
+          <>
+            <dl>
+              <dt>ACTIVE ROUTE 333:</dt>
+              <dd>
+                <pre>
+                  {JSON.stringify(
+                    {
+                      search: router.route?.search,
+                      pathname: router.route?.pathname,
+                      hash: router.route?.hash,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+                <dd>{router.route?.uri}</dd>
+              </dd>
+            </dl>
+
+            <dl>
+              <dt>Set Random route params:</dt>
+              <dd>
+                <button
+                  onClick={() => {
+                    router.routes.foo.push({
+                      pathname: { language: 'en' },
+                      search: {
+                        a: `${Date.now()}`,
+                        b: { x: '1' },
+                      },
+                    })
+                  }}
+                >
+                  Set
+                </button>
+              </dd>
+            </dl>
+          </>
+        )}
+      </Observer>
+    </>
+  )
+}
+
+export const Search_params = () => {
   const [router] = React.useState(
     () =>
       new XRouter(
         [FooRoute, BazRoute, FooBarRoute, DefaultRoute],
         createMemoryHistory(),
       ),
-  );
+  )
 
   return (
     <>
       <Observer>
         {() => {
-          const { foo: route } = router.routes;
+          const { foo: route } = router.routes
           const [search, setSearch] = React.useState({
             a: `${Date.now()}`,
             b: { x: '1' },
-          });
+          })
 
           React.useEffect(() => {
-            console.log('new');
-
             route.push({
               pathname: { language: 'en' },
               search,
-            });
-          }, [search]);
+            })
+          }, [search])
 
           return (
             <>
@@ -262,23 +320,24 @@ export const search_params = () => {
                 </dd>
               </dl>
             </>
-          );
+          )
         }}
       </Observer>
     </>
-  );
-};
+  )
+}
 
-export const shared_language_params = () => {
+export const Shared_language_params = () => {
   const DemoComponent = observer(() => {
     /** Create the router for the demo with the route list */
     const [router] = React.useState(
       () =>
         new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
-    );
+    )
+
     const activeProps = {
       style: { color: 'green', outline: '2px solid green' },
-    };
+    }
 
     return (
       <>
@@ -431,8 +490,8 @@ export const shared_language_params = () => {
           </dl>
         </dl>
       </>
-    );
-  });
+    )
+  })
 
-  return <DemoComponent />;
-};
+  return <DemoComponent />
+}

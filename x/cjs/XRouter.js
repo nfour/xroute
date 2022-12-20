@@ -100,9 +100,8 @@ class XRouter {
     }
     /** Stop reacting to all changes - disposer. */
     stopReacting() {
-        var _a, _b;
-        (_a = this.stopReactingToHistory) === null || _a === void 0 ? void 0 : _a.call(this);
-        (_b = this.stopReactingToLocation) === null || _b === void 0 ? void 0 : _b.call(this);
+        this.stopReactingToHistory?.();
+        this.stopReactingToLocation?.();
     }
     /**
      * A map of routes `{ [route.key]: route }`
@@ -132,34 +131,30 @@ class XRouter {
         // TODO: Should it be configurable to allow multiple matches?
         let isAlreadyMatched = false;
         return this.definition.reduce((routes, _route) => {
-            var _a, _b, _c;
             const route = _route;
             const { key, resource } = route;
             const matched = (0, path_to_regexp_1.match)(resource, {
                 decode: decodeURI,
                 encode: encodeURI,
-            })((_a = location.pathname) !== null && _a !== void 0 ? _a : '');
+            })(location.pathname ?? '');
             const { index, params: pathname } = matched || {};
-            const mergeLocation = (p = {}) => {
-                var _a, _b, _c, _d;
-                return ({
-                    pathname: {
-                        ...(_a = this.route) === null || _a === void 0 ? void 0 : _a.pathname,
-                        ...p.pathname,
-                    },
-                    search: {
-                        ...(((_b = this.route) === null || _b === void 0 ? void 0 : _b.key) === route.key ? this.route.search : {}),
-                        ...p.search,
-                    },
-                    hash: (_c = p.hash) !== null && _c !== void 0 ? _c : (_d = this.route) === null || _d === void 0 ? void 0 : _d.hash,
-                });
-            };
+            const mergeLocation = (p = {}) => ({
+                pathname: {
+                    ...this.route?.pathname,
+                    ...p.pathname,
+                },
+                search: {
+                    ...(this.route?.key === route.key ? this.route.search : {}),
+                    ...p.search,
+                },
+                hash: p.hash ?? this.route?.hash,
+            });
             const isActive = isAlreadyMatched === false && index !== undefined;
             if (isActive)
                 isAlreadyMatched = true;
-            const search = qs.parse((_b = location.search) !== null && _b !== void 0 ? _b : '', {
+            const search = qs.parse(location.search ?? '', {
                 ignoreQueryPrefix: true,
-                ...(_c = this.config.qs) === null || _c === void 0 ? void 0 : _c.parse,
+                ...this.config.qs?.parse,
             });
             // TODO: convert to a class LiveRoute {}
             const newRoute = {
@@ -204,19 +199,18 @@ class XRouter {
     }
     /** Converts a route to a { pathname, search, hash } parts. */
     toUriParts(route, location) {
-        var _a, _b, _c;
         const { resource, key } = route;
         try {
-            const pathname = (0, path_to_regexp_1.compile)(resource)({ ...((_a = location === null || location === void 0 ? void 0 : location.pathname) !== null && _a !== void 0 ? _a : {}) }) || '/';
-            const searchQs = typeof (location === null || location === void 0 ? void 0 : location.search) === 'string'
+            const pathname = (0, path_to_regexp_1.compile)(resource)({ ...(location?.pathname ?? {}) }) || '/';
+            const searchQs = typeof location?.search === 'string'
                 ? location.search
-                : qs.stringify((_b = location === null || location === void 0 ? void 0 : location.search) !== null && _b !== void 0 ? _b : {}, {
+                : qs.stringify(location?.search ?? {}, {
                     addQueryPrefix: false,
                     encodeValuesOnly: true,
                     format: 'RFC3986',
-                    ...(_c = this.config.qs) === null || _c === void 0 ? void 0 : _c.format,
+                    ...this.config.qs?.format,
                 });
-            const hash = (location === null || location === void 0 ? void 0 : location.hash) ? `#${location.hash}` : '';
+            const hash = location?.hash ? `#${location.hash}`.replace(/^#+/, '#') : '';
             const search = searchQs ? `?${searchQs}` : '';
             return { pathname, search, hash };
         }
@@ -254,6 +248,6 @@ function asActiveRoute(route) {
 exports.asActiveRoute = asActiveRoute;
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
 function findActiveRoute(routes) {
-    return asActiveRoutes(routes).find((r) => r === null || r === void 0 ? void 0 : r.isActive);
+    return asActiveRoutes(routes).find((r) => r?.isActive);
 }
 exports.findActiveRoute = findActiveRoute;

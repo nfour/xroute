@@ -1,23 +1,23 @@
-import { History } from 'history';
-import { isEqual } from 'lodash';
-import { makeAutoObservable, reaction } from 'mobx';
-import { compile, match } from 'path-to-regexp';
-import * as qs from 'qs';
+import { History } from 'history'
+import { isEqual } from 'lodash'
+import { makeAutoObservable, reaction } from 'mobx'
+import { compile, match } from 'path-to-regexp'
+import * as qs from 'qs'
 
 /** Create a typed route config object */
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string,
   LOCATION extends {
-    pathname: {};
-    search: {};
-    hash?: string;
-  }
+    pathname: {}
+    search: {}
+    hash?: string
+  },
 >(
   key: KEY,
   resource: RESOURCE,
   location: LOCATION,
-) => ({ key, resource, location });
+) => ({ key, resource, location })
 
 export interface IRouter extends XRouter<any, any, any> {}
 
@@ -27,19 +27,19 @@ export interface IRouter extends XRouter<any, any, any> {}
 export class XRouter<
   CONFIGS extends RouteConfig[],
   ROUTES extends {
-    [C in CONFIGS[number] as C['key']]: LiveRoute<C>;
+    [C in CONFIGS[number] as C['key']]: LiveRoute<C>
   },
-  CONFIG extends CONFIGS[number]
+  CONFIG extends CONFIGS[number],
 > {
   /** The synced location object. Also available within `this.routes[route].location`. */
   public location: Location = {
     hash: '',
     pathname: '',
     search: '',
-  };
+  }
 
-  public stopReactingToHistory?(): void;
-  public stopReactingToLocation?(): void;
+  public stopReactingToHistory?(): void
+  public stopReactingToLocation?(): void
 
   constructor(
     public definition: CONFIGS,
@@ -47,22 +47,22 @@ export class XRouter<
     public config: {
       /** @optional `qs` library option OVERRIDES (careful!) */
       qs?: {
-        parse?: qs.IParseOptions;
-        format?: qs.IStringifyOptions;
-      };
+        parse?: qs.IParseOptions
+        format?: qs.IStringifyOptions
+      }
     } = {},
   ) {
-    this.definition = definition;
-    this.history = history;
-    this.config = config;
+    this.definition = definition
+    this.history = history
+    this.config = config
 
     makeAutoObservable(this, {
       history: false,
       definition: false,
       config: false,
-    });
+    })
 
-    this.startReacting();
+    this.startReacting()
   }
 
   private getLocationProperies = ({
@@ -70,37 +70,37 @@ export class XRouter<
     pathname,
     search,
   }: this['location']) => {
-    return { pathname, search, hash };
-  };
+    return { pathname, search, hash }
+  }
 
   public setLocation(location: this['location']) {
-    this.location = this.getLocationProperies(location);
+    this.location = this.getLocationProperies(location)
   }
 
   /** Start reacting to changes. This is automatically called on construction. */
   public startReacting() {
-    this.stopReacting();
-    this.setLocation(this.history.location);
+    this.stopReacting()
+    this.setLocation(this.history.location)
 
     this.stopReactingToHistory = this.history.listen(({ location }) =>
       this.setLocation(location),
-    );
+    )
 
     this.stopReactingToLocation = reaction(
       () => this.location,
       (location) => {
         if (isEqual(this.getLocationProperies(this.history.location), location))
-          return;
+          return
 
-        this.history.replace(location);
+        this.history.replace(location)
       },
-    );
+    )
   }
 
   /** Stop reacting to all changes - disposer. */
   public stopReacting() {
-    this.stopReactingToHistory?.();
-    this.stopReactingToLocation?.();
+    this.stopReactingToHistory?.()
+    this.stopReactingToLocation?.()
   }
 
   /**
@@ -127,21 +127,19 @@ export class XRouter<
    * })
    */
   get routes(): ROUTES {
-    const location = this.location;
-
+    const location = this.location
     // TODO: Should it be configurable to allow multiple matches?
-    let isAlreadyMatched = false;
+    let isAlreadyMatched = false
 
     return this.definition.reduce((routes, _route) => {
-      const route = _route as CONFIG;
-      const { key, resource } = route;
+      const route = _route as CONFIG
+      const { key, resource } = route
       const matched = match(resource, {
         decode: decodeURI,
         encode: encodeURI,
-      })(location.pathname ?? '');
+      })(location.pathname ?? '')
 
-      const { index, params: pathname } = matched || {};
-
+      const { index, params: pathname } = matched || {}
       const mergeLocation = (p: Partial<LiveRoute<any>> = {}) => ({
         pathname: {
           ...(this.route?.pathname as {} | undefined),
@@ -152,16 +150,16 @@ export class XRouter<
           ...p.search,
         },
         hash: p.hash ?? this.route?.hash,
-      });
+      })
 
-      const isActive = isAlreadyMatched === false && index !== undefined;
+      const isActive = isAlreadyMatched === false && index !== undefined
 
-      if (isActive) isAlreadyMatched = true;
+      if (isActive) isAlreadyMatched = true
 
       const search = qs.parse(location.search ?? '', {
         ignoreQueryPrefix: true,
         ...this.config.qs?.parse,
-      });
+      })
 
       // TODO: convert to a class LiveRoute {}
       const newRoute: LiveRoute<typeof route> = {
@@ -173,10 +171,10 @@ export class XRouter<
         config: route,
         hash: location.hash,
         get location() {
-          return { ...location };
+          return { ...location }
         },
         get uri() {
-          return `${location.pathname}${location.search}${location.hash}`;
+          return `${location.pathname}${location.search}${location.hash}`
         },
         push: (p: {}) => this.push(route, mergeLocation(p)),
         pushExact: (p: {}) => this.push(route, p),
@@ -184,23 +182,23 @@ export class XRouter<
         replaceExact: (p: {}) => this.replace(route, p),
         toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
         toUriExact: (p: {}) => this.toUri(route, p),
-      };
+      }
 
-      return { ...routes, [key]: newRoute };
-    }, {} as ROUTES);
+      return { ...routes, [key]: newRoute }
+    }, {} as ROUTES)
   }
 
   /** The currently active route. */
   get route(): undefined | ActiveLiveRoute<CONFIG> {
-    if (!this.routes) return;
+    if (!this.routes) return
 
     // Get routes in order.
     for (const { key } of this.definition) {
       const route = this.routes[
         key as keyof this['routes']
-      ] as ActiveLiveRoute<CONFIG>;
+      ] as ActiveLiveRoute<CONFIG>
 
-      if (route.isActive) return route;
+      if (route.isActive) return route
     }
   }
 
@@ -209,9 +207,9 @@ export class XRouter<
     route: ROUTE,
     location?: Partial2Deep<ROUTE['location']>,
   ) {
-    const { pathname, search, hash } = this.toUriParts(route, location);
+    const { pathname, search, hash } = this.toUriParts(route, location)
 
-    return `${pathname}${search}${hash}`;
+    return `${pathname}${search}${hash}`
   }
 
   /** Converts a route to a { pathname, search, hash } parts. */
@@ -219,11 +217,11 @@ export class XRouter<
     route: ROUTE,
     location?: Partial2Deep<ROUTE['location']>,
   ) {
-    const { resource, key } = route;
+    const { resource, key } = route
 
     try {
       const pathname =
-        compile(resource)({ ...(location?.pathname ?? {}) }) || '/';
+        compile(resource)({ ...(location?.pathname ?? {}) }) || '/'
 
       const searchQs =
         typeof location?.search === 'string'
@@ -233,16 +231,16 @@ export class XRouter<
               encodeValuesOnly: true,
               format: 'RFC3986',
               ...this.config.qs?.format,
-            });
+            })
 
-      const hash = location?.hash ? `#${location.hash}` : '';
-      const search = searchQs ? `?${searchQs}` : '';
+      const hash = location?.hash ? `#${location.hash}`.replace(/^#+/, '#') : ''
+      const search = searchQs ? `?${searchQs}` : ''
 
-      return { pathname, search, hash };
+      return { pathname, search, hash }
     } catch (error) {
       throw new Error(
         `INVALID_PARAMS\nROUTE: ${key}\nPATH: ${resource}\n ${error}`,
-      );
+      )
     }
   }
 
@@ -250,15 +248,15 @@ export class XRouter<
   push<ROUTE extends CONFIG>(
     route: ROUTE,
     location?: Partial2Deep<ROUTE['location']>,
-  ): void;
+  ): void
 
   /** Equal to history.push(pathname) */
-  push(fullPath: string): void;
+  push(fullPath: string): void
   push<ROUTE extends CONFIG>(
     route: ROUTE | string,
     location?: Partial2Deep<ROUTE['location']>,
   ) {
-    this.navigate(route, location, 'push');
+    this.navigate(route, location, 'push')
   }
 
   /** history.replace() a given route */
@@ -267,20 +265,20 @@ export class XRouter<
   replace<ROUTE extends CONFIG>(
     route: ROUTE,
     location?: Partial2Deep<ROUTE['location']>,
-  ): void;
+  ): void
 
-  replace(fullPath: string): void;
+  replace(fullPath: string): void
   replace<ROUTE extends CONFIG>(
     route: ROUTE | string,
     location?: Partial2Deep<ROUTE['location']>,
   ) {
-    this.navigate(route, location, 'replace');
+    this.navigate(route, location, 'replace')
   }
 
-  go: History['go'] = (...args) => this.history.go(...args);
-  back: History['back'] = () => this.history.back();
-  forward: History['forward'] = () => this.history.forward();
-  block: History['block'] = (...args) => this.history.block(...args);
+  go: History['go'] = (...args) => this.history.go(...args)
+  back: History['back'] = () => this.history.back()
+  forward: History['forward'] = () => this.history.forward()
+  block: History['block'] = (...args) => this.history.block(...args)
 
   /**
    * Be aware, toPath will throw if missing params.
@@ -292,21 +290,21 @@ export class XRouter<
     method: 'push' | 'replace' = 'push',
   ): void {
     if (typeof route === 'string') {
-      return this.history[method](route);
+      return this.history[method](route)
     }
 
-    const { pathname, search, hash } = this.toUriParts(route, location);
+    const { pathname, search, hash } = this.toUriParts(route, location)
 
-    this.history[method]({ pathname, search, hash });
+    this.history[method]({ pathname, search, hash })
   }
 }
 
-export type RouteConfig = ReturnType<typeof XRoute>;
+export type RouteConfig = ReturnType<typeof XRoute>
 
 interface Location {
-  hash: undefined | string;
-  pathname: undefined | string;
-  search: undefined | string;
+  hash: undefined | string
+  pathname: undefined | string
+  search: undefined | string
 }
 
 /**
@@ -314,66 +312,66 @@ interface Location {
  * @example new XRouter(...).routes.myFooRoute
  */
 export interface LiveRoute<CONFIG extends RouteConfig> {
-  isActive: boolean;
+  isActive: boolean
 
   /** pathname variables @example resource `/:foo/:bar` to uri `/1/2` resolves `{ foo: '1', bar: '2' }` */
-  pathname?: CONFIG['location']['pathname'];
+  pathname?: CONFIG['location']['pathname']
   /** search variables @example uri `/?foo=1&bar=2` resolves `{ foo: '1', bar: '2' }` */
-  search?: CONFIG['location']['search'];
+  search?: CONFIG['location']['search']
   /** the hash string @example `/#foooo` resolves `foooo` */
-  hash?: CONFIG['location']['hash'];
+  hash?: CONFIG['location']['hash']
 
   /** Raw location object for current route state */
-  location: Location;
+  location: Location
   /**
    * The full URI that the current route resolves to.
    * Essenitally a product of route.toUri(route)
    * Returns `undefined` when the current route is in an invalid state
    */
-  uri: undefined | string;
+  uri: undefined | string
 
-  key: CONFIG['key'];
-  resource: CONFIG['resource'];
-  config: CONFIG;
-  push(location?: Partial2Deep<CONFIG['location']>): void;
-  pushExact(location: CONFIG['location']): void;
+  key: CONFIG['key']
+  resource: CONFIG['resource']
+  config: CONFIG
+  push(location?: Partial2Deep<CONFIG['location']>): void
+  pushExact(location: CONFIG['location']): void
 
-  replace(location?: Partial2Deep<CONFIG['location']>): void;
-  replaceExact(location: CONFIG['location']): void;
+  replace(location?: Partial2Deep<CONFIG['location']>): void
+  replaceExact(location: CONFIG['location']): void
 
-  toUri(location?: Partial2Deep<CONFIG['location']>): string;
-  toUriExact(location: CONFIG['location']): string;
+  toUri(location?: Partial2Deep<CONFIG['location']>): string
+  toUriExact(location: CONFIG['location']): string
 }
 
 export interface ActiveLiveRoute<CONFIG extends RouteConfig>
   extends LiveRoute<CONFIG> {
-  isActive: true;
+  isActive: true
 
-  pathname: CONFIG['location']['pathname'];
-  search: CONFIG['location']['search'];
-  hash: CONFIG['location']['hash'];
+  pathname: CONFIG['location']['pathname']
+  search: CONFIG['location']['search']
+  hash: CONFIG['location']['hash']
 }
 
 /** Cast a list of LiveRoute[] to ActiveLiveRoute[]  */
 export function asActiveRoutes<
-  ROUTE extends undefined | LiveRoute<RouteConfig>
+  ROUTE extends undefined | LiveRoute<RouteConfig>,
 >(routes: ROUTE[]) {
-  return routes.map(asActiveRoute);
+  return routes.map(asActiveRoute)
 }
 
 export function asActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(
   route: undefined | ROUTE,
 ) {
-  return route as undefined | ActiveLiveRoute<ROUTE['config']>;
+  return route as undefined | ActiveLiveRoute<ROUTE['config']>
 }
 
 /** Within LiveRoute[] find where isActive === true and return ActiveLiveRoute */
 export function findActiveRoute<
-  ROUTE extends undefined | LiveRoute<RouteConfig>
+  ROUTE extends undefined | LiveRoute<RouteConfig>,
 >(routes: ROUTE[]) {
-  return asActiveRoutes(routes).find((r) => r?.isActive);
+  return asActiveRoutes(routes).find((r) => r?.isActive)
 }
 
 type Partial2Deep<T> = {
-  [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
-};
+  [P in keyof T]?: P extends {} ? Partial<T[P]> : P
+}

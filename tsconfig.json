@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "strict": true,
-    "target": "ES2018",
+    "target": "ES2020",
     "outDir": "./x",
     "allowJs": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "lib": [ "dom", "es2018" ],
+    "lib": [ "dom", "es2020" ],
     "jsx": "react",
     "declaration": true,
     "experimentalDecorators": true,
