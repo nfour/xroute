@@ -1,4 +1,3 @@
-import { History } from 'history'
 import { isEqual } from 'lodash'
 import { makeAutoObservable, reaction } from 'mobx'
 import { compile, match } from 'path-to-regexp'
@@ -32,7 +31,7 @@ export class XRouter<
   CONFIG extends CONFIGS[number],
 > {
   /** The synced location object. Also available within `this.routes[route].location`. */
-  public location: Location = {
+  public location: LocationPath = {
     hash: '',
     pathname: '',
     search: '',
@@ -43,7 +42,7 @@ export class XRouter<
 
   constructor(
     public definition: CONFIGS,
-    public history: History,
+    public history: HistorySubset,
     public config: {
       /** @optional `qs` library option OVERRIDES (careful!) */
       qs?: {
@@ -275,10 +274,10 @@ export class XRouter<
     this.navigate(route, location, 'replace')
   }
 
-  go: History['go'] = (...args) => this.history.go(...args)
-  back: History['back'] = () => this.history.back()
-  forward: History['forward'] = () => this.history.forward()
-  block: History['block'] = (...args) => this.history.block(...args)
+  go: HistorySubset['go'] = (...args) => this.history.go(...args)
+  back: HistorySubset['back'] = () => this.history.back()
+  forward: HistorySubset['forward'] = () => this.history.forward()
+  block: HistorySubset['block'] = (...args) => this.history.block(...args)
 
   /**
    * Be aware, toPath will throw if missing params.
@@ -301,7 +300,7 @@ export class XRouter<
 
 export type RouteConfig = ReturnType<typeof XRoute>
 
-interface Location {
+interface LocationPath {
   hash: undefined | string
   pathname: undefined | string
   search: undefined | string
@@ -322,7 +321,7 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
   hash?: CONFIG['location']['hash']
 
   /** Raw location object for current route state */
-  location: Location
+  location: LocationPath
   /**
    * The full URI that the current route resolves to.
    * Essenitally a product of route.toUri(route)
@@ -374,4 +373,29 @@ export function findActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(
 
 type Partial2Deep<T> = {
   [P in keyof T]?: P extends {} ? Partial<T[P]> : P
+}
+
+export interface HistorySubset {
+  readonly location: LocationPath
+
+  push(to: To, state?: any): void
+  replace(to: To, state?: any): void
+  go(delta: number): void
+  back(): void
+  forward(): void
+  listen(
+    listener: (update: HistoryUpdate) => void
+  ): () => void
+  block(
+    blocker: (tx: { retry(): void } & HistoryUpdate) => void
+  ): void
+}
+
+type To = string|LocationPath
+
+interface HistoryUpdate { action: HistoryAction; location: LocationPath }
+export enum HistoryAction {
+  Pop = "POP",
+  Push = "PUSH",
+  Replace = "REPLACE"
 }
