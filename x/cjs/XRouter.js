@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
+exports.HistoryAction = exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
 const lodash_1 = require("lodash");
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
@@ -8,6 +8,7 @@ const qs = require("qs");
 /** Create a typed route config object */
 const XRoute = (key, resource, location) => ({ key, resource, location });
 exports.XRoute = XRoute;
+exports.XRoute.Type = ((v) => v);
 /**
  * Declarative routing via the History interface.
  */
@@ -251,3 +252,9 @@ function findActiveRoute(routes) {
     return asActiveRoutes(routes).find((r) => r?.isActive);
 }
 exports.findActiveRoute = findActiveRoute;
+var HistoryAction;
+(function (HistoryAction) {
+    HistoryAction["Pop"] = "POP";
+    HistoryAction["Push"] = "PUSH";
+    HistoryAction["Replace"] = "REPLACE";
+})(HistoryAction = exports.HistoryAction || (exports.HistoryAction = {}));

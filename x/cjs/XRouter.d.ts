@@ -1,15 +1,19 @@
-import { History } from 'history';
 import * as qs from 'qs';
-/** Create a typed route config object */
-export declare const XRoute: <KEY extends string, RESOURCE extends string, LOCATION extends {
+interface LocationType {
     pathname: {};
     search: {};
-    hash?: string | undefined;
-}>(key: KEY, resource: RESOURCE, location: LOCATION) => {
-    key: KEY;
-    resource: RESOURCE;
-    location: LOCATION;
-};
+    hash?: string;
+}
+interface XRouteRoute {
+    <KEY extends string, RESOURCE extends string, LOCATION extends LocationType>(key: KEY, resource: RESOURCE, location: LOCATION): {
+        key: KEY;
+        resource: RESOURCE;
+        location: LOCATION;
+    };
+    Type<T extends LocationType>(): T;
+}
+/** Create a typed route config object */
+export declare const XRoute: XRouteRoute;
 export interface IRouter extends XRouter<any, any, any> {
 }
 /**
@@ -19,7 +23,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     [C in CONFIGS[number] as C['key']]: LiveRoute<C>;
 }, CONFIG extends CONFIGS[number]> {
     definition: CONFIGS;
-    history: History;
+    history: HistorySubset;
     config: {
         /** @optional `qs` library option OVERRIDES (careful!) */
         qs?: {
@@ -28,10 +32,10 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
         };
     };
     /** The synced location object. Also available within `this.routes[route].location`. */
-    location: Location;
+    location: LocationPath;
     stopReactingToHistory?(): void;
     stopReactingToLocation?(): void;
-    constructor(definition: CONFIGS, history: History, config?: {
+    constructor(definition: CONFIGS, history: HistorySubset, config?: {
         /** @optional `qs` library option OVERRIDES (careful!) */
         qs?: {
             parse?: qs.IParseOptions;
@@ -86,10 +90,10 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     /** Equal to history.replace(pathname) */
     replace<ROUTE extends CONFIG>(route: ROUTE, location?: Partial2Deep<ROUTE['location']>): void;
     replace(fullPath: string): void;
-    go: History['go'];
-    back: History['back'];
-    forward: History['forward'];
-    block: History['block'];
+    go: HistorySubset['go'];
+    back: HistorySubset['back'];
+    forward: HistorySubset['forward'];
+    block: HistorySubset['block'];
     /**
      * Be aware, toPath will throw if missing params.
      * When navigating from another route, ensure you provide all required params.
@@ -97,7 +101,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[], ROUTES extends {
     protected navigate<ROUTE_DEF extends CONFIG>(route: ROUTE_DEF | string, location?: Partial2Deep<ROUTE_DEF['location']>, method?: 'push' | 'replace'): void;
 }
 export type RouteConfig = ReturnType<typeof XRoute>;
-interface Location {
+interface LocationPath {
     hash: undefined | string;
     pathname: undefined | string;
     search: undefined | string;
@@ -115,7 +119,7 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
     /** the hash string @example `/#foooo` resolves `foooo` */
     hash?: CONFIG['location']['hash'];
     /** Raw location object for current route state */
-    location: Location;
+    location: LocationPath;
     /**
      * The full URI that the current route resolves to.
      * Essenitally a product of route.toUri(route)
@@ -146,4 +150,26 @@ export declare function findActiveRoute<ROUTE extends LiveRoute<RouteConfig>>(ro
 type Partial2Deep<T> = {
     [P in keyof T]?: P extends {} ? Partial<T[P]> : P;
 };
+export interface HistorySubset {
+    readonly location: LocationPath;
+    push(to: To, state?: any): void;
+    replace(to: To, state?: any): void;
+    go(delta: number): void;
+    back(): void;
+    forward(): void;
+    listen(listener: (update: HistoryUpdate) => void): () => void;
+    block(blocker: (tx: {
+        retry(): void;
+    } & HistoryUpdate) => void): void;
+}
+type To = string | LocationPath;
+interface HistoryUpdate {
+    action: string;
+    location: LocationPath;
+}
+export declare enum HistoryAction {
+    Pop = "POP",
+    Push = "PUSH",
+    Replace = "REPLACE"
+}
 export {};

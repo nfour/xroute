@@ -4,6 +4,7 @@ import { compile, match } from 'path-to-regexp';
 import * as qs from 'qs';
 /** Create a typed route config object */
 export const XRoute = (key, resource, location) => ({ key, resource, location });
+XRoute.Type = ((v) => v);
 /**
  * Declarative routing via the History interface.
  */
@@ -243,3 +244,9 @@ export function asActiveRoute(route) {
 export function findActiveRoute(routes) {
     return asActiveRoutes(routes).find((r) => r?.isActive);
 }
+export var HistoryAction;
+(function (HistoryAction) {
+    HistoryAction["Pop"] = "POP";
+    HistoryAction["Push"] = "PUSH";
+    HistoryAction["Replace"] = "REPLACE";
+})(HistoryAction || (HistoryAction = {}));
