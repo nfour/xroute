@@ -10,16 +10,16 @@ export default {
 const validLanguages = ['en', 'da', 'de'] as const
 const languageParam = `:language(${validLanguages.join('|')})`
 
-type ILanguage = typeof validLanguages[number]
+type ILanguage = (typeof validLanguages)[number]
 
 const FooRoute = XRoute(
   'foo',
   `/${languageParam}/foo`,
-  {} as {
+  XRoute.Type<{
     pathname: { language: ILanguage }
     search: { a?: string; b?: { x: string } }
     hash?: string
-  },
+  }>(),
 )
 
 const FooBarRoute = XRoute(

@@ -3,20 +3,33 @@ import { makeAutoObservable, reaction } from 'mobx'
 import { compile, match } from 'path-to-regexp'
 import * as qs from 'qs'
 
+interface LocationType {
+  pathname: {}
+  search: {}
+  hash?: string
+}
+interface XRouteRoute {
+  <KEY extends string, RESOURCE extends string, LOCATION extends LocationType>(
+    key: KEY,
+    resource: RESOURCE,
+    location: LOCATION,
+  ): {
+    key: KEY
+    resource: RESOURCE
+    location: LOCATION
+  }
+
+  Type<T extends LocationType>(): T
+}
+
 /** Create a typed route config object */
-export const XRoute = <
-  KEY extends string,
-  RESOURCE extends string,
-  LOCATION extends {
-    pathname: {}
-    search: {}
-    hash?: string
-  },
->(
-  key: KEY,
-  resource: RESOURCE,
-  location: LOCATION,
+export const XRoute: XRouteRoute = (
+  key: any,
+  resource: any,
+  location: any,
 ) => ({ key, resource, location })
+
+XRoute.Type = ((v: any) => v) as XRouteRoute['Type']
 
 export interface IRouter extends XRouter<any, any, any> {}
 
@@ -383,19 +396,18 @@ export interface HistorySubset {
   go(delta: number): void
   back(): void
   forward(): void
-  listen(
-    listener: (update: HistoryUpdate) => void
-  ): () => void
-  block(
-    blocker: (tx: { retry(): void } & HistoryUpdate) => void
-  ): void
+  listen(listener: (update: HistoryUpdate) => void): () => void
+  block(blocker: (tx: { retry(): void } & HistoryUpdate) => void): void
 }
 
-type To = string|LocationPath
+type To = string | LocationPath
 
-interface HistoryUpdate { action: HistoryAction; location: LocationPath }
+interface HistoryUpdate {
+  action: string
+  location: LocationPath
+}
 export enum HistoryAction {
-  Pop = "POP",
-  Push = "PUSH",
-  Replace = "REPLACE"
+  Pop = 'POP',
+  Push = 'PUSH',
+  Replace = 'REPLACE',
 }
