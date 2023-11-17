@@ -157,6 +157,10 @@ class XRouter {
                 ignoreQueryPrefix: true,
                 ...this.config.qs?.parse,
             });
+            const inputHandler = (handler) => (input) => {
+                const value = typeof input === 'function' ? input(route) : input;
+                return handler(value);
+            };
             // TODO: convert to a class LiveRoute {}
             const newRoute = {
                 isActive,
@@ -172,12 +176,12 @@ class XRouter {
                 get uri() {
                     return `${location.pathname}${location.search}${location.hash}`;
                 },
-                push: (p) => this.push(route, mergeLocation(p)),
-                pushExact: (p) => this.push(route, p),
-                replace: (p) => this.replace(route, mergeLocation(p)),
-                replaceExact: (p) => this.replace(route, p),
-                toUri: (p) => this.toUri(route, mergeLocation(p)),
-                toUriExact: (p) => this.toUri(route, p),
+                push: inputHandler((p) => this.push(route, mergeLocation(p))),
+                pushExact: inputHandler((p) => this.push(route, p)),
+                replace: inputHandler((p) => this.replace(route, mergeLocation(p))),
+                replaceExact: inputHandler((p) => this.replace(route, p)),
+                toUri: inputHandler((p) => this.toUri(route, mergeLocation(p))),
+                toUriExact: inputHandler((p) => this.toUri(route, p)),
             };
             return { ...routes, [key]: newRoute };
         }, {});
@@ -257,4 +261,4 @@ var HistoryAction;
     HistoryAction["Pop"] = "POP";
     HistoryAction["Push"] = "PUSH";
     HistoryAction["Replace"] = "REPLACE";
-})(HistoryAction = exports.HistoryAction || (exports.HistoryAction = {}));
+})(HistoryAction || (exports.HistoryAction = HistoryAction = {}));

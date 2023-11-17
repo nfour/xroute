@@ -129,11 +129,17 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
     key: CONFIG['key'];
     resource: CONFIG['resource'];
     config: CONFIG;
+    push(push: (location: Partial2Deep<CONFIG['location']>) => Partial2Deep<CONFIG['location']>): void;
     push(location?: Partial2Deep<CONFIG['location']>): void;
+    pushExact(push: (location: CONFIG['location']) => CONFIG['location']): void;
     pushExact(location: CONFIG['location']): void;
+    replace(replace: (location: Partial2Deep<CONFIG['location']>) => Partial2Deep<CONFIG['location']>): void;
     replace(location?: Partial2Deep<CONFIG['location']>): void;
+    replaceExact(replace: (location: CONFIG['location']) => CONFIG['location']): void;
     replaceExact(location: CONFIG['location']): void;
+    toUri(toUri: (location: Partial2Deep<CONFIG['location']>) => Partial2Deep<CONFIG['location']>): string;
     toUri(location?: Partial2Deep<CONFIG['location']>): string;
+    toUriExact(toUriExact: (location: CONFIG['location']) => CONFIG['location']): string;
     toUriExact(location: CONFIG['location']): string;
 }
 export interface ActiveLiveRoute<CONFIG extends RouteConfig> extends LiveRoute<CONFIG> {
