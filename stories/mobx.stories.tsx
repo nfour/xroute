@@ -61,7 +61,9 @@ export const To_path = () => {
         <li>
           Foo route path, en:{' '}
           <textarea>
-            {router.routes.foo.toUri({ pathname: { language: 'en' } })}
+            {router.routes.foo.toUri((uri) => ({
+              pathname: { ...uri.pathname, language: 'en' },
+            }))}
           </textarea>
         </li>
       </ul>
@@ -152,10 +154,10 @@ export const Search_params = () => {
           })
 
           React.useEffect(() => {
-            route.push({
-              pathname: { language: 'en' },
-              search,
-            })
+            route.pushExact((uri) => ({
+              ...uri,
+              pathname: { ...uri.pathname, language: 'en' },
+            }))
           }, [search])
 
           const activeRouteTest = findActiveRoute([

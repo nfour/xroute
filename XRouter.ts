@@ -173,6 +173,13 @@ export class XRouter<
         ...this.config.qs?.parse,
       })
 
+      const inputHandler =
+        (handler: (p: {}) => any) => (input: Function | {} | undefined) => {
+          const value = typeof input === 'function' ? input(route) : input
+
+          return handler(value)
+        }
+
       // TODO: convert to a class LiveRoute {}
       const newRoute: LiveRoute<typeof route> = {
         isActive,
@@ -188,12 +195,12 @@ export class XRouter<
         get uri() {
           return `${location.pathname}${location.search}${location.hash}`
         },
-        push: (p: {}) => this.push(route, mergeLocation(p)),
-        pushExact: (p: {}) => this.push(route, p),
-        replace: (p: {}) => this.replace(route, mergeLocation(p)),
-        replaceExact: (p: {}) => this.replace(route, p),
-        toUri: (p: {}) => this.toUri(route, mergeLocation(p)),
-        toUriExact: (p: {}) => this.toUri(route, p),
+        push: inputHandler((p) => this.push(route, mergeLocation(p))),
+        pushExact: inputHandler((p) => this.push(route, p)),
+        replace: inputHandler((p) => this.replace(route, mergeLocation(p))),
+        replaceExact: inputHandler((p) => this.replace(route, p)),
+        toUri: inputHandler((p) => this.toUri(route, mergeLocation(p))),
+        toUriExact: inputHandler((p) => this.toUri(route, p)),
       }
 
       return { ...routes, [key]: newRoute }
@@ -345,13 +352,37 @@ export interface LiveRoute<CONFIG extends RouteConfig> {
   key: CONFIG['key']
   resource: CONFIG['resource']
   config: CONFIG
+  push(
+    push: (
+      location: Partial2Deep<CONFIG['location']>,
+    ) => Partial2Deep<CONFIG['location']>,
+  ): void
   push(location?: Partial2Deep<CONFIG['location']>): void
+
+  pushExact(push: (location: CONFIG['location']) => CONFIG['location']): void
   pushExact(location: CONFIG['location']): void
 
+  replace(
+    replace: (
+      location: Partial2Deep<CONFIG['location']>,
+    ) => Partial2Deep<CONFIG['location']>,
+  ): void
   replace(location?: Partial2Deep<CONFIG['location']>): void
+  replaceExact(
+    replace: (location: CONFIG['location']) => CONFIG['location'],
+  ): void
   replaceExact(location: CONFIG['location']): void
 
+  toUri(
+    toUri: (
+      location: Partial2Deep<CONFIG['location']>,
+    ) => Partial2Deep<CONFIG['location']>,
+  ): string
   toUri(location?: Partial2Deep<CONFIG['location']>): string
+
+  toUriExact(
+    toUriExact: (location: CONFIG['location']) => CONFIG['location'],
+  ): string
   toUriExact(location: CONFIG['location']): string
 }
 
