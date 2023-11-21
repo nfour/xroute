@@ -2,9 +2,42 @@ import { isEqual } from 'lodash';
 import { makeAutoObservable, reaction } from 'mobx';
 import { compile, match } from 'path-to-regexp';
 import * as qs from 'qs';
-/** Create a typed route config object */
-export const XRoute = (key, resource, location) => ({ key, resource, location });
-XRoute.Type = ((v) => v);
+export class XRouteConstructor {
+    constructor(key, resource = '', location = {}) {
+        Object.defineProperty(this, "key", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: key
+        });
+        Object.defineProperty(this, "resource", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: resource
+        });
+        Object.defineProperty(this, "location", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: location
+        });
+    }
+    Resource(r) {
+        return new XRouteConstructor(this.key, r, this.location);
+    }
+    Type(l) {
+        return new XRouteConstructor(this.key, this.resource, l);
+    }
+}
+/** @deprecated Use .Type on instance instead. */
+Object.defineProperty(XRouteConstructor, "Type", {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value: (v) => v
+});
+export const XRoute = (key, resource, location) => new XRouteConstructor(key, resource, location);
 /**
  * Declarative routing via the History interface.
  */

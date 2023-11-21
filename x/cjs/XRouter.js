@@ -1,14 +1,48 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HistoryAction = exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = void 0;
+exports.HistoryAction = exports.findActiveRoute = exports.asActiveRoute = exports.asActiveRoutes = exports.XRouter = exports.XRoute = exports.XRouteConstructor = void 0;
 const lodash_1 = require("lodash");
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
-/** Create a typed route config object */
-const XRoute = (key, resource, location) => ({ key, resource, location });
+class XRouteConstructor {
+    constructor(key, resource = '', location = {}) {
+        Object.defineProperty(this, "key", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: key
+        });
+        Object.defineProperty(this, "resource", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: resource
+        });
+        Object.defineProperty(this, "location", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: location
+        });
+    }
+    Resource(r) {
+        return new XRouteConstructor(this.key, r, this.location);
+    }
+    Type(l) {
+        return new XRouteConstructor(this.key, this.resource, l);
+    }
+}
+exports.XRouteConstructor = XRouteConstructor;
+/** @deprecated Use .Type on instance instead. */
+Object.defineProperty(XRouteConstructor, "Type", {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value: (v) => v
+});
+const XRoute = (key, resource, location) => new XRouteConstructor(key, resource, location);
 exports.XRoute = XRoute;
-exports.XRoute.Type = ((v) => v);
 /**
  * Declarative routing via the History interface.
  */

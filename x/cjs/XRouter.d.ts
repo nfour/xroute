@@ -4,16 +4,17 @@ interface LocationType {
     search: {};
     hash?: string;
 }
-interface XRouteRoute {
-    <KEY extends string, RESOURCE extends string, LOCATION extends LocationType>(key: KEY, resource: RESOURCE, location: LOCATION): {
-        key: KEY;
-        resource: RESOURCE;
-        location: LOCATION;
-    };
-    Type<T extends LocationType>(): T;
+export declare class XRouteConstructor<KEY extends string, RESOURCE extends string = '', LOCATION extends LocationType = LocationType> {
+    key: KEY;
+    resource: RESOURCE;
+    location: LOCATION;
+    /** @deprecated Use .Type on instance instead. */
+    static Type: <T extends LocationType>(v: T) => T;
+    constructor(key: KEY, resource?: RESOURCE, location?: LOCATION);
+    Resource<T extends string>(r: T): XRouteConstructor<KEY, T, LOCATION>;
+    Type<T extends LocationType>(l?: T): XRouteConstructor<KEY, RESOURCE, T>;
 }
-/** Create a typed route config object */
-export declare const XRoute: XRouteRoute;
+export declare const XRoute: <KEY extends string, RESOURCE extends string = "", LOCATION extends LocationType = LocationType>(key: KEY, resource?: RESOURCE | undefined, location?: LOCATION | undefined) => XRouteConstructor<KEY, RESOURCE, LOCATION>;
 export interface IRouter extends XRouter<any, any, any> {
 }
 /**

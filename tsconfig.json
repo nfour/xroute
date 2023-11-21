@@ -10,8 +10,11 @@
     "jsx": "react",
     "declaration": true,
     "experimentalDecorators": true,
-    "useDefineForClassFields": true
+    "useDefineForClassFields": true,
+    "paths": {
+      "xroute": ["./index.ts"],
+    }
   },
   "exclude": ["node_modules"],
-  "include": ["./*.ts", "./*.tsx", "stories"]
+  "include": ["./*.ts", "./docs/*.tsx", "./docs/*.ts", "./*.tsx", "stories", "docs/routeDefinition.ts"]
 }
