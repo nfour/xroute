@@ -186,7 +186,7 @@ export class XRouter<
 
       const inputHandler =
         (handler: (p: {}) => any) => (input: Function | {} | undefined) => {
-          const value = typeof input === 'function' ? input(route) : input
+          const value = typeof input === 'function' ? input(newRoute) : input
 
           return handler(value)
         }

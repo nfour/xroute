@@ -192,7 +192,7 @@ class XRouter {
                 ...this.config.qs?.parse,
             });
             const inputHandler = (handler) => (input) => {
-                const value = typeof input === 'function' ? input(route) : input;
+                const value = typeof input === 'function' ? input(newRoute) : input;
                 return handler(value);
             };
             // TODO: convert to a class LiveRoute {}
