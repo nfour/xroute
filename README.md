@@ -19,6 +19,8 @@ Mobx powered `History` router, with types.
 
 - [docs/routeDefinition.ts](./docs/routeDefinition.ts)
 
+![image](https://github.com/nfour/xroute/assets/2108452/c7b118f8-f180-4e1b-99ca-15b130b71470)
+
 ```tsx
 import { createBrowserHistory } from 'history'
 import { XRoute, XRouter } from 'xroute'
