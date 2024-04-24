@@ -9,16 +9,16 @@ import { XRoute, XRouter } from 'xroute'
 //
 
 const HomeRoute = XRoute('home')
-  .Resource('/:language(en|da|de)?') // Optional language param, eg. /en or /
+  .Resource('/') // Optional language param, eg. /en or /
   .Type<{
-    pathname: { language?: 'en' | 'da' | 'de' }
-    search: {}
+    pathname: {}
+    search: { language?: 'en' | 'da' | 'de' }
   }>()
 
 const UserProfileRoute = HomeRoute.Extend('userProfile')
-  .Resource('/:language(en|da|de)/user/:userId') // Required language, eg. /da/user/11
+  .Resource('/user/:userId') // Required language, eg. /da/user/11
   .Type<{
-    pathname: { language: 'en' | 'da' | 'de'; userId: string }
+    pathname: { userId: string }
     search: { profileSection: 'profile' | 'preferences' }
   }>()
 
@@ -29,29 +29,35 @@ export type MyXRouter = typeof router
 // Log some changes
 autorun(() => console.log('Active route:', router.route))
 
-// Navigate to: /en
+// Navigate to: /?language=en
 router.routes.home.push({ pathname: { language: 'en' } })
 
 // Get the pathname, eg. to put inside an <a href="" />
 const homeDaUri = router.routes.home.toUri({ pathname: { language: 'da' } }) // "/da"
 
-// Navigates to: /en/user/11
-router.routes.userProfile.push({ pathname: { language: 'en', userId: '11' } })
+// Navigates to: /user/11?language=en
+router.routes.userProfile.push({
+  pathname: { userId: '11' },
+  search: { language: 'en' },
+})
 
 // Just change the language in the active route.
 // This works as long as the parameter is shared between all routes.
-// Navigates to: /da/user/11
+// Navigates to: /user/11?language=da
 router.route?.push({ pathname: { language: 'da' } })
 
 // Re-use the current language
-// Navigates to: /da/
+// Navigates to: /?language=da
 router.routes.home.push({
-  pathname: { language: router.route?.pathname.language },
+  search: { language: router.route?.search.language },
 })
 
 // Provide a route object to route from anywhere:
 // Navigate to: /de/user/55
-router.push(UserProfileRoute, { pathname: { language: 'de', userId: '55' } })
+router.push(UserProfileRoute, {
+  pathname: { userId: '55' },
+  search: { language: 'de' },
+})
 
 // Read route properties:
 
@@ -59,7 +65,7 @@ router.push(UserProfileRoute, { pathname: { language: 'de', userId: '55' } })
 router.routes.userProfile.pathname?.userId // => '55'
 
 /** Because `language` is available on all routes, we can read it from the active route at `router.route` */
-router.route?.pathname?.language
+router.route?.search?.language
 
 class UserProfilePage {
   constructor(private router: MyXRouter) {
@@ -119,6 +125,7 @@ const Component = observer(() => {
 
   return (
     <>
+      <nav>Active Language: {router.route?.search.language}</nav>
       {router.route?.key === 'home' && <div>Home Page!</div>}
       {
         // Or do this:

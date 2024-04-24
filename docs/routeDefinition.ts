@@ -9,18 +9,13 @@ export const HomeRoute = XRoute('home')
     search: {}
   }>()
 
-enum AdminSections {
-  Analytics = 'analytics',
-  Users = 'users',
-}
-
 export const AdminRoute = XRoute('admin')
   .Resource(
-    `/admin/:section(${AdminSections.Analytics}|${AdminSections.Users})`, // /admin/:section(analytics|users)
+    `/admin`, // /admin
   )
   .Type<{
-    pathname: { section?: AdminSections }
-    search: {}
+    pathname: {}
+    search: { isAdvancedView?: boolean }
   }>()
 
 enum AdminAnalyticsSubSections {
@@ -38,10 +33,10 @@ const AdminAnalyticsSubsectionsURI = `:subSection(${AdminAnalyticsSubSections.To
 
 const AdminAnalyticsSubsectionsURILoose = `:subSection(${Object.values(
   AdminAnalyticsSubSections,
-).join('|')})?`
+).join('|')})?` as const
 
 export const AdminAnalyticsRoute = AdminRoute.Extend('adminAnalytics')
-  .Resource(`/${AdminAnalyticsSubsectionsURI}`) // /admin/analytics/:subSection(topPages|topUsers|rawData)
+  .Resource(`/analytics/${AdminAnalyticsSubsectionsURI}`) // /admin/analytics/:subSection(topPages|topUsers|rawData)
   .Type<{
     pathname: { subSection?: AdminAnalyticsSubSections }
     search: {}
@@ -78,11 +73,11 @@ export function createRouter() {
   return new XRouter(
     // Order matters, notice the `notFound` route is at the end, to act as a fallback
     [
-      AdminAnalyticsRoute,
-      AdminUsersRoute,
-      AdminRoute,
-      HomeRoute,
-      NotFoundRoute,
+      AdminAnalyticsRoute, // /admin/analytics/topPages
+      AdminUsersRoute, // /admin/users?userId=123&editor[line]=1&editor[activeToolId]=2&editor[selectedItems]=3&editor[selectedItems]=4
+      AdminRoute, // /admin
+      HomeRoute, // /
+      NotFoundRoute, // /asdaskjdkalsdjklasd
     ],
     createBrowserHistory(),
   )
