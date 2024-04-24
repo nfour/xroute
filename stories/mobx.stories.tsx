@@ -15,11 +15,11 @@ type ILanguage = (typeof validLanguages)[number]
 const FooRoute = XRoute(
   'foo',
   `/${languageParam}/foo`,
-  XRoute.Type<{
+  {} as {
     pathname: { language: ILanguage }
     search: { a?: string; b?: { x: string } }
     hash?: string
-  }>(),
+  },
 )
 
 const FooBarRoute = XRoute(
@@ -506,3 +506,151 @@ export const Shared_language_params = () => {
 
   return <DemoComponent />
 }
+
+export const Extends_routes = observer(() => {
+  const AppRoute = XRoute('app').Resource('/').Type<{
+    pathname: {}
+    // pathname: { x?: 1}
+    search: { foo?: number }
+  }>()
+
+  const NotFoundRoute = XRoute('notFound').Resource('/:garbage(.*)?').Type<{
+    pathname: { garbage?: string }
+    search: {}
+  }>()
+
+  const AdminRoute = XRoute('admin').Resource('/admin').Type<{
+    pathname: {}
+    search: { language?: 'en' | 'da' }
+  }>()
+
+  const AdminAnalyticsRoute = AdminRoute.Extend('adminAnalytics')
+    .Resource('/analytics')
+    .Type<{
+      pathname: { section: 'analytics' }
+      search: {}
+      hash: '#foo'
+    }>()
+
+  const router = React.useMemo(
+    () =>
+      new XRouter(
+        [AdminAnalyticsRoute, AdminRoute, AppRoute, NotFoundRoute],
+
+        createMemoryHistory(),
+      ),
+    [],
+  )
+
+  router.routes.adminAnalytics.hash // #foo
+  router.routes.adminAnalytics.pathname?.section // 'analytics'
+  router.routes.adminAnalytics.search?.language // 'en' | 'da' | undefined
+
+  return (
+    <dl
+      style={{
+        fontFamily: 'consolas, monospace',
+        fontSize: '1.15em',
+      }}
+    >
+      <dt>URL Bar:</dt>
+      <dd>
+        <input
+          style={{ fontSize: '2em' }}
+          value={[
+            router.route?.location.pathname,
+            router.route?.location.search,
+            router.route?.location.hash,
+          ].join('')}
+          onChange={(e) => router.replace(e.target.value)}
+        />
+      </dd>
+      <dt>toUri:</dt>
+      <dd>
+        <input
+          disabled
+          style={{ fontSize: '2em' }}
+          value={router.route?.toUri()}
+        />
+      </dd>
+      <dt>Actions:</dt>
+      <dd>
+        <button
+          onClick={() =>
+            router.routes.admin.push({
+              hash: '',
+            })
+          }
+        >
+          To admin page
+        </button>
+        <button
+          onClick={() =>
+            router.routes.adminAnalytics.push({
+              hash: '#foo',
+              search: {},
+            })
+          }
+        >
+          To admin analytics page
+        </button>
+        <button
+          onClick={() =>
+            router.routes.app.pushExact({
+              pathname: {},
+              hash: '',
+              search: { foo: 123 },
+            })
+          }
+        >
+          To app page
+        </button>
+        <button
+          onClick={() =>
+            router.routes.notFound.push({
+              pathname: { garbage: Math.random().toString(36).substring(7) },
+              hash: '',
+              search: { foo: Math.random() },
+            })
+          }
+        >
+          To random page (notfound)
+        </button>
+      </dd>
+      <dt>`router`</dt>
+      <dd>
+        <pre>
+          {JSON.stringify(
+            {
+              route: router.route,
+              routes: router.routes,
+              router,
+            },
+            null,
+            2,
+          )}
+        </pre>
+      </dd>
+    </dl>
+  )
+  // // or
+
+  // const AdminAnalyticsRoute2 = AdminRoute.Extend(
+  //   XRoute('adminAnalytics').Resource('/:section(analytics)').Type<{
+  //     pathname: { section: 'analytics' }
+  //     search: {}
+  //   }>(),
+  // )
+
+  // const AdminAnalyticsRoute3 = XRoute('adminAnalytics')
+  //   .Resource('/:section(analytics)')
+  //   .Type<{
+  //     pathname: { section: 'analytics' }
+  //     search: {}
+  //   }>()
+  //   .ExtendsFrom(AdminRoute)
+
+  // router.routes.adminAnalytics.resource // /admin/:seciton(analytics)
+  // router.routes.adminAnalytics.search?.language // inherited from admin route
+  // router.routes.adminAnalytics.pathname?.section // 'analytics'
+})

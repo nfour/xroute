@@ -26,13 +26,14 @@
     "mobx": "^6.3.3"
   },
   "dependencies": {
-    "@emotion/react": "^11.10.5",
-    "@types/qs": "^6.9.7",
+    "@types/qs": "^6.9.15",
     "lodash": "^4.17.21",
-    "path-to-regexp": "^6.2.0",
-    "qs": "^6.11.2"
+    "path-to-regexp": "^6.2.2",
+    "qs": "^6.12.1",
+    "type-fest": "^4.16.0"
   },
   "devDependencies": {
+    "@emotion/react": "^11.10.5",
     "@ladle/react": "^1.2.0",
     "@types/lodash": "^4.14.182",
     "@types/node": "^18.11.17",

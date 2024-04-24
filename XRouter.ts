@@ -2,6 +2,7 @@ import { isEqual } from 'lodash'
 import { makeAutoObservable, reaction } from 'mobx'
 import { compile, match } from 'path-to-regexp'
 import * as qs from 'qs'
+import { MergeDeep } from 'type-fest'
 
 interface LocationType {
   pathname: {}
@@ -14,21 +15,40 @@ export class XRouteConstructor<
   RESOURCE extends string = '',
   LOCATION extends LocationType = LocationType,
 > {
-  /** @deprecated Use .Type on instance instead. */
-  static Type = <T extends LocationType>(v: T) => v
-
   constructor(
     public key: KEY,
     public resource = '' as RESOURCE,
     public location = {} as LOCATION,
   ) {}
 
-  Resource<T extends string>(r: T) {
-    return new XRouteConstructor(this.key, r, this.location)
+  Resource<R extends string>(
+    r: R,
+  ): XRouteConstructor<KEY, `${RESOURCE}${R}`, LOCATION> {
+    return new XRouteConstructor(
+      this.key,
+      `${this.resource}${r}`,
+      this.location,
+    )
   }
 
-  Type<T extends LocationType>(l?: T) {
-    return new XRouteConstructor(this.key, this.resource, l as T)
+  Type<T extends LocationType>(
+    l?: T,
+  ): XRouteConstructor<
+    KEY,
+    RESOURCE,
+    {
+      pathname: MergeDeep<LOCATION['pathname'], T['pathname']>
+      search: MergeDeep<LOCATION['search'], T['search']>
+      hash: T['hash'] extends undefined | string ? T['hash'] : LOCATION['hash']
+    }
+  > {
+    return new XRouteConstructor(this.key, this.resource, l as any)
+  }
+
+  Extend<NEW_KEY extends string>(
+    key: NEW_KEY,
+  ): XRouteConstructor<NEW_KEY, RESOURCE, LOCATION> {
+    return new XRouteConstructor(key, this.resource, this.location)
   }
 }
 
@@ -38,8 +58,8 @@ export const XRoute = <
   LOCATION extends LocationType = LocationType,
 >(
   key: KEY,
-  resource?: RESOURCE,
-  location?: LOCATION,
+  resource = '' as RESOURCE,
+  location = {} as LOCATION,
 ) => new XRouteConstructor(key, resource, location)
 
 export interface IRouter extends XRouter<any, any, any> {}

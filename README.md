@@ -9,213 +9,108 @@ Mobx powered `History` router, with types.
 - [x] Type safe `search` params via `qs` serialization
 - [x] Type safe `hash` string
 - [x] Workarounds for some known issues with History: [Here](https://github.com/ReactTraining/history/issues/811)
-- [ ] (Future) Automatic type acquisition from pathname string literal
+- [x] Route inheritance for nesting routes 
 
 ## Usage
 
 - [x] Requires >= Mobx@6
 
-> See the [source for Typescript definition](./xroute.ts)
-> See the [stories for usage examples](./xroute.stories.ts)
+> See the [stories for usage examples](./stories/mobx.stories.tsx)
 
-## Documentation:
+- [docs/routeDefinition.ts](./docs/routeDefinition.ts)
 
-### Route Definition
-
-- [docs/routeDefinition.ts](./docs//routeDefinition.ts)
 ```tsx
-/**
- * Creating routes
- */
+import { createBrowserHistory } from 'history'
+import { XRoute, XRouter } from 'xroute'
 
-import { XRoute } from 'xroute'
+/** A simple route, matches the `/`, the root page */
+export const HomeRoute = XRoute('home')
+  .Resource('/') // /
+  .Type<{
+    pathname: {}
+    search: {}
+  }>()
 
-/**
- * In this route we store data only in the `pathname`
- * @example `/blue/100/0.5` or `/blue/100`
- *
- * The ? denotes optional parameters.
- */
-export const blueRoute = XRoute('blue')
-  .Resource('/blue/:saturation/:alpha?')
+enum AdminSections {
+  Analytics = 'analytics',
+  Users = 'users',
+}
+
+export const AdminRoute = XRoute('admin')
+  .Resource(
+    `/admin/:section(${AdminSections.Analytics}|${AdminSections.Users})`, // /admin/:section(analytics|users)
+  )
+  .Type<{
+    pathname: { section?: AdminSections }
+    search: {}
+  }>()
+
+enum AdminAnalyticsSubSections {
+  TopPages = 'topPages',
+  TopUsers = 'topUsers',
+  RawData = 'rawData',
+}
+
+const AdminAnalyticsSubsectionsURI = `:subSection(${AdminAnalyticsSubSections.TopPages}|${AdminAnalyticsSubSections.TopUsers}|${AdminAnalyticsSubSections.RawData})?`
+
+//
+// OR:
+//    if you dont care about type safety, do this:
+//
+
+const AdminAnalyticsSubsectionsURILoose = `:subSection(${Object.values(
+  AdminAnalyticsSubSections,
+).join('|')})?`
+
+export const AdminAnalyticsRoute = AdminRoute.Extend('adminAnalytics')
+  .Resource(`/${AdminAnalyticsSubsectionsURI}`) // /admin/analytics/:subSection(topPages|topUsers|rawData)
+  .Type<{
+    pathname: { subSection?: AdminAnalyticsSubSections }
+    search: {}
+  }>()
+
+export const AdminUsersRoute = AdminRoute.Extend('adminUsers')
+  .Resource(`/users`) // /admin/users
+  .Type<{
+    pathname: {}
+
+    // You don't need to use the pathname at all if you want to keep it simple
+    // Can even nest objects and arrays.
+    search: {
+      userId?: string // ends up as ?userId=123
+      editor?: {
+        line?: string
+        activeToolId?: string
+        selectedItems?: string[]
+      } // ?editor[line]=1&editor[activeToolId]=2&editor[selectedItems]=3&editor[selectedItems]=4
+    }
+  }>()
+
+export const NotFoundRoute = XRoute('notFound')
+  .Resource('/:someGarbage(.*)?') // /:someGarbage(.*)?
   .Type<{
     pathname: {
-      /** 0-100 */
-      saturation: string
-      /** 0-100 */
-      alpha?: string
+      /** The pathname that didnt match any route */
+      someGarbage?: string
     }
     search: {}
   }>()
 
-// The above is the same as:
-
-export const blueRoute2 = XRoute(
-  'blue',
-  '/blue/:saturation/:alpha?', // Optional param
-  {} as {
-    pathname: {
-      /** 0-100 */
-      saturation: string
-      /** 0-100 */
-      alpha?: string
-    }
-    search: {}
-  },
-)
-
-/**
- * In this route we store data only in the search string
- * @example `?alpha=0.5&hue.red=255&hue.green=0&hue.blue=0`
- */
-export const hueRoute = XRoute(
-  'hue',
-  '/hue',
-  {} as {
-    pathname: {}
-    search: {
-      alpha?: string
-      hue?: { red?: string; green?: string; blue?: string }
-    }
-  },
-)
-
-/**
- * In this route we store data in both the pathname and search
- * @example `/red/100?saturation=0.5`
- */
-export const redRoute = XRoute(
-  'red',
-  '/red/:alpha?',
-  {} as {
-    pathname: {
-      /** 0-100 */
-      alpha: string
-    }
-    search: {
-      /** 0-100 */
-      saturation: string
-    }
-  },
-)
-```
-
-### React Example
-
-- [docs/react.tsx](./docs/react.tsx)
-```tsx
-/**
- * Creating routes
- */
-
-import { observer } from 'mobx-react-lite'
-import { XRouter } from 'xroute'
-import * as React from 'react'
-import { createBrowserHistory } from 'history'
-import { blueRoute, hueRoute } from './routeDefinition'
-
-/**
- * Lets create a react component that uses these routes
- */
-
-export const App = observer(() => {
-  const [router] = React.useState(
-    () => new XRouter([blueRoute, hueRoute], createBrowserHistory()),
+export function createRouter() {
+  return new XRouter(
+    // Order matters, notice the `notFound` route is at the end, to act as a fallback
+    [
+      AdminAnalyticsRoute,
+      AdminUsersRoute,
+      AdminRoute,
+      HomeRoute,
+      NotFoundRoute,
+    ],
+    createBrowserHistory(),
   )
-
-  return (
-    <>
-      {router.routes.blue.isActive ?? (
-        <>
-          <label>Blue</label>
-          <div
-            style={{
-              height: '100px',
-              width: '100px',
-              backgroundColor: `hsl(
-              248deg
-              ${router.routes.blue.pathname?.saturation ?? '50'}%
-              ${
-                router.routes.blue.pathname?.alpha
-                  ? `/ ${router.routes.blue.pathname?.alpha}%`
-                  : ''
-              }
-            )`,
-            }}
-          />
-          <button
-            onClick={() =>
-              router.routes.blue.push({
-                pathname: {
-                  saturation: Math.max(
-                    100,
-                    10 + Number(router.routes.blue.pathname?.saturation ?? 0),
-                  ).toString(),
-                },
-              })
-            }
-          >
-            + Increase saturation
-          </button>
-          <button
-            onClick={() =>
-              router.routes.blue.push({
-                pathname: {
-                  saturation: Math.abs(
-                    -10 + Number(router.routes.blue.pathname?.saturation ?? 0),
-                  ).toString(),
-                },
-              })
-            }
-          >
-            - Reduce saturation
-          </button>
-        </>
-      )}
-      {router.route?.key === 'hue' ?? (
-        <>
-          <label>Hue</label>
-          <div
-            style={{
-              height: '100px',
-              width: '100px',
-              backgroundColor: `rgba(
-              ${router.routes.hue.search?.hue?.red ?? '200'},
-              ${router.routes.hue.search?.hue?.green ?? '200'},
-              ${router.routes.hue.search?.hue?.blue ?? '200'},
-              ${router.routes.hue.search?.alpha ?? '1'}
-            )`,
-            }}
-          />
-          <div>
-            <label>Red:</label>
-            <input
-              value={router.routes.hue.search?.hue?.red}
-              onChange={(e) =>
-                // Here we use the callback form of push to update the search
-                // It is given the previous state of the search and we can
-                // update it as we wish.
-                router.routes.hue.push((uri) => ({
-                  search: {
-                    hue: {
-                      ...uri.search?.hue,
-                      red: e.target.value,
-                    },
-                  },
-                }))
-              }
-            />
-            {/* ... green, blue, alpha ... */}
-          </div>
-        </>
-      )}
-    </>
-  )
-})
+}
 
 ```
-
-### Full Example
 
 - [docs/fullExample.tsx](./docs/fullExample.tsx)
 
@@ -230,23 +125,19 @@ import { XRoute, XRouter } from 'xroute'
 // Define some routes
 //
 
-const HomeRoute = XRoute(
-  'home',
-  '/:language(en|da|de)?', // Optional language param
-  {} as {
+const HomeRoute = XRoute('home')
+  .Resource('/:language(en|da|de)?') // Optional language param, eg. /en or /
+  .Type<{
     pathname: { language?: 'en' | 'da' | 'de' }
     search: {}
-  },
-)
+  }>()
 
-const UserProfileRoute = XRoute(
-  'userProfile',
-  '/:language(en|da|de)/user/:userId', // All params required
-  {} as {
+const UserProfileRoute = HomeRoute.Extend('userProfile')
+  .Resource('/:language(en|da|de)/user/:userId') // Required language, eg. /da/user/11
+  .Type<{
     pathname: { language: 'en' | 'da' | 'de'; userId: string }
     search: { profileSection: 'profile' | 'preferences' }
-  },
-)
+  }>()
 
 const router = new XRouter([UserProfileRoute, HomeRoute], createHashHistory())
 

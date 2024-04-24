@@ -8,23 +8,19 @@ import { XRoute, XRouter } from 'xroute'
 // Define some routes
 //
 
-const HomeRoute = XRoute(
-  'home',
-  '/:language(en|da|de)?', // Optional language param
-  {} as {
+const HomeRoute = XRoute('home')
+  .Resource('/:language(en|da|de)?') // Optional language param, eg. /en or /
+  .Type<{
     pathname: { language?: 'en' | 'da' | 'de' }
     search: {}
-  },
-)
+  }>()
 
-const UserProfileRoute = XRoute(
-  'userProfile',
-  '/:language(en|da|de)/user/:userId', // All params required
-  {} as {
+const UserProfileRoute = HomeRoute.Extend('userProfile')
+  .Resource('/:language(en|da|de)/user/:userId') // Required language, eg. /da/user/11
+  .Type<{
     pathname: { language: 'en' | 'da' | 'de'; userId: string }
     search: { profileSection: 'profile' | 'preferences' }
-  },
-)
+  }>()
 
 const router = new XRouter([UserProfileRoute, HomeRoute], createHashHistory())
 

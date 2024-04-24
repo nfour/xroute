@@ -27,21 +27,17 @@ class XRouteConstructor {
         });
     }
     Resource(r) {
-        return new XRouteConstructor(this.key, r, this.location);
+        return new XRouteConstructor(this.key, `${this.resource}${r}`, this.location);
     }
     Type(l) {
         return new XRouteConstructor(this.key, this.resource, l);
     }
+    Extend(key) {
+        return new XRouteConstructor(key, this.resource, this.location);
+    }
 }
 exports.XRouteConstructor = XRouteConstructor;
-/** @deprecated Use .Type on instance instead. */
-Object.defineProperty(XRouteConstructor, "Type", {
-    enumerable: true,
-    configurable: true,
-    writable: true,
-    value: (v) => v
-});
-const XRoute = (key, resource, location) => new XRouteConstructor(key, resource, location);
+const XRoute = (key, resource = '', location = {}) => new XRouteConstructor(key, resource, location);
 exports.XRoute = XRoute;
 /**
  * Declarative routing via the History interface.

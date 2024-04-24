@@ -1,4 +1,5 @@
 import * as qs from 'qs';
+import { MergeDeep } from 'type-fest';
 interface LocationType {
     pathname: {};
     search: {};
@@ -8,13 +9,16 @@ export declare class XRouteConstructor<KEY extends string, RESOURCE extends stri
     key: KEY;
     resource: RESOURCE;
     location: LOCATION;
-    /** @deprecated Use .Type on instance instead. */
-    static Type: <T extends LocationType>(v: T) => T;
     constructor(key: KEY, resource?: RESOURCE, location?: LOCATION);
-    Resource<T extends string>(r: T): XRouteConstructor<KEY, T, LOCATION>;
-    Type<T extends LocationType>(l?: T): XRouteConstructor<KEY, RESOURCE, T>;
+    Resource<R extends string>(r: R): XRouteConstructor<KEY, `${RESOURCE}${R}`, LOCATION>;
+    Type<T extends LocationType>(l?: T): XRouteConstructor<KEY, RESOURCE, {
+        pathname: MergeDeep<LOCATION['pathname'], T['pathname']>;
+        search: MergeDeep<LOCATION['search'], T['search']>;
+        hash: T['hash'] extends undefined | string ? T['hash'] : LOCATION['hash'];
+    }>;
+    Extend<NEW_KEY extends string>(key: NEW_KEY): XRouteConstructor<NEW_KEY, RESOURCE, LOCATION>;
 }
-export declare const XRoute: <KEY extends string, RESOURCE extends string = "", LOCATION extends LocationType = LocationType>(key: KEY, resource?: RESOURCE | undefined, location?: LOCATION | undefined) => XRouteConstructor<KEY, RESOURCE, LOCATION>;
+export declare const XRoute: <KEY extends string, RESOURCE extends string = "", LOCATION extends LocationType = LocationType>(key: KEY, resource?: RESOURCE, location?: LOCATION) => XRouteConstructor<KEY, RESOURCE, LOCATION>;
 export interface IRouter extends XRouter<any, any, any> {
 }
 /**
