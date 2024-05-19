@@ -49,11 +49,11 @@ export class LiveXRoute<
     )
   }
 
-  get key() {
+  get key(): CONFIG['key'] {
     return this.config.key
   }
 
-  get resource() {
+  get resource(): CONFIG['resource'] {
     return this.config.resource
   }
 
