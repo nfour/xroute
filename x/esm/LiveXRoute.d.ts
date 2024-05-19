@@ -13,8 +13,8 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
     /** Config location */
     L: CONFIG['location'];
     constructor(config: CONFIG, router: ROUTER);
-    get key(): string;
-    get resource(): string;
+    get key(): CONFIG['key'];
+    get resource(): CONFIG['resource'];
     private get pathnameMatch();
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -50,8 +50,8 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
         hash: string;
     };
     toJSON(): {
-        key: string;
-        resource: string;
+        key: CONFIG["key"];
+        resource: CONFIG["resource"];
         pathname: CONFIG["location"]["pathname"];
         search: CONFIG["location"]["search"];
         hash: CONFIG["location"]["hash"];

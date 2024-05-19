@@ -110,8 +110,8 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         search: string;
         hash: string;
         route: {
-            key: string; /** Equal to history.replace(pathname) */
-            resource: string;
+            key: CONFIGS[number]["key"];
+            resource: CONFIGS[number]["resource"];
             pathname: CONFIGS[number]["location"]["pathname"];
             search: CONFIGS[number]["location"]["search"];
             hash: CONFIGS[number]["location"]["hash"];
@@ -120,8 +120,8 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         } | undefined;
         routes: {
             [k: string]: {
-                key: string; /** Equal to history.replace(pathname) */
-                resource: string;
+                key: any;
+                resource: any;
                 pathname: any;
                 search: any;
                 hash: any;
