@@ -16,5 +16,5 @@
     }
   },
   "exclude": ["node_modules"],
-  "include": ["./*.ts", "./docs/*.tsx", "./docs/*.ts", "./*.tsx", "stories", "docs/routeDefinition.ts"]
+  "include": [".ladle/*.d.ts", "./*.ts", "./docs/*.tsx", "./docs/*.ts", "./*.tsx", "stories", "docs/*.ts"]
 }

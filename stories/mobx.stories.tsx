@@ -1,7 +1,8 @@
 import { createBrowserHistory, createMemoryHistory } from 'history'
 import { Observer, observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { findActiveRoute, XRoute, XRouter } from '../XRouter'
+import { XRouter } from '../XRouter'
+import { XRoute } from '../XRoute'
 
 export default {
   title: 'XRouter Mobx',
@@ -105,7 +106,7 @@ export const Hash_history = () => {
                     2,
                   )}
                 </pre>
-                <dd>{router.route?.uri}</dd>
+                <dd>{router.route?.toUri()}</dd>
               </dd>
             </dl>
 
@@ -134,7 +135,7 @@ export const Hash_history = () => {
   )
 }
 
-export const Search_params = () => {
+export const Search_params = observer(() => {
   const [router] = React.useState(
     () =>
       new XRouter(
@@ -143,369 +144,356 @@ export const Search_params = () => {
       ),
   )
 
-  return (
-    <>
-      <Observer>
-        {() => {
-          const { foo: route } = router.routes
-          const [search, setSearch] = React.useState({
-            a: `${Date.now()}`,
-            b: { x: '1' },
-          })
+  console.log('router.pathname', router.pathname)
+  console.log('router.search', router.search)
+  console.log('router.hash', router.hash)
 
-          React.useEffect(() => {
-            route.pushExact((uri) => ({
-              ...uri,
-              pathname: { ...uri.pathname, language: 'en' },
-            }))
-          }, [search])
-
-          const activeRouteTest = findActiveRoute([
-            router.routes.foo,
-            router.routes.foobar,
-            router.routes.baz,
-            router.routes.default,
-          ])
-
-          activeRouteTest // Testing types
-
-          return (
-            <>
-              <dl>
-                <dt>ACTIVE ROUTE:</dt>
-                <dd>
-                  <pre>
-                    {JSON.stringify(
-                      {
-                        search: route.search,
-                        pathname: route.pathname,
-                        hash: route.hash,
-                      },
-                      null,
-                      2,
-                    )}
-                  </pre>
-                </dd>
-                <dd>{route.uri}</dd>
-              </dl>
-              <dl>
-                <dt>
-                  toUri()
-                  <br />
-                  <label>a</label>
-                  <input
-                    value={search.a}
-                    onChange={(e) =>
-                      setSearch({
-                        ...search,
-                        a: e.target.value,
-                      })
-                    }
-                  />
-                  <label>b.x</label>
-                  <input
-                    value={search.b.x}
-                    onChange={(e) =>
-                      setSearch({
-                        ...search,
-                        b: {
-                          ...search.b,
-                          x: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </dt>
-              </dl>
-              <dl>
-                <dt>Exact Route 1:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      route.pushExact({
-                        pathname: { language: 'en' },
-                        search: { a: '1' },
-                      })
-                    }
-                  >
-                    Set exactly: /en/?a=1
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Exact Route 2:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      route.pushExact({
-                        pathname: { language: 'en' },
-                        search: { b: { x: '2' } },
-                      })
-                    }
-                  >
-                    Set exactly: /en/?b[x]=2
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Exact Route 3:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      router.routes.foo.push({
-                        pathname: { language: 'en' },
-                        search: {},
-                      })
-                    }
-                  >
-                    Set exactly: /en/
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Add `b` to foo:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      router.routes.foo.push({
-                        pathname: { language: 'en' },
-                        search: {
-                          b: { x: '111' },
-                        },
-                      })
-                    }
-                  >
-                    Set exactly: /en/
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Add `a` to foo:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      router.routes.foo.push({
-                        pathname: { language: 'en' },
-                        search: {
-                          a: '222',
-                        },
-                      })
-                    }
-                  >
-                    Set exactly: /en/
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Add `a` to foobar:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      router.routes.foobar.push({
-                        pathname: { language: 'en' },
-                        search: {
-                          a: '222',
-                        },
-                      })
-                    }
-                  >
-                    Set exactly: /en/
-                  </button>
-                </dd>
-              </dl>
-              <dl>
-                <dt>Add `zzz` to foobar:</dt>
-                <dd>
-                  <button
-                    onClick={() =>
-                      router.routes.foobar.push({
-                        pathname: { language: 'en' },
-                        search: {
-                          zzz: '111',
-                        },
-                      })
-                    }
-                  >
-                    Set exactly: /en/
-                  </button>
-                </dd>
-              </dl>
-            </>
-          )
-        }}
-      </Observer>
-    </>
-  )
-}
-
-export const Shared_language_params = () => {
-  const DemoComponent = observer(() => {
-    /** Create the router for the demo with the route list */
-    const [router] = React.useState(
-      () =>
-        new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
-    )
-
-    const activeProps = {
-      style: { color: 'green', outline: '2px solid green' },
-    }
-
-    return (
-      <>
-        <dl
-          style={{
-            fontFamily: 'consolas, monospace',
-            fontSize: '1.15em',
-          }}
-        >
-          <dl>
-            <dt>INPUT:</dt>
-            <dd>
-              <dt>URL Bar:</dt>
-              <dd>
-                <input
-                  style={{ fontSize: '2em' }}
-                  value={router.route?.location.pathname}
-                  onChange={(e) => router.replace(e.target.value)}
-                />
-              </dd>
-              <dt>Links:</dt>
-              <dd>
-                <dl>
-                  <dt>
-                    LANGUAGE:{' '}
-                    <b>{router.route?.pathname?.language || 'undefined'}</b>
-                  </dt>
-                  <dd>
-                    {validLanguages.map((language) => (
-                      <>
-                        <div>
-                          <button
-                            onClick={() =>
-                              router.route?.push({
-                                pathname: { language },
-                              })
-                            }
-                          >
-                            {language}
-                          </button>
-                        </div>
-                      </>
-                    ))}
-                  </dd>
-                  <dt {...(router.route?.key === 'foo' ? activeProps : {})}>
-                    FOO
-                  </dt>
-                  <dd>
-                    <button
-                      onClick={() =>
-                        router.routes.foo.push({ pathname: { language: 'en' } })
-                      }
-                    >
-                      /en/foo
-                    </button>
-                    <br />
-                    <button
-                      onClick={() =>
-                        router.routes.foo.push({
-                          pathname: {
-                            // Re-use the current route's language param or default to en
-                            language: router.route?.pathname?.language || 'en',
-                          },
-                        })
-                      }
-                    >
-                      /:language/foo
-                    </button>
-                  </dd>
-                  <dt {...(router.route?.key === 'baz' ? activeProps : {})}>
-                    BAZ
-                  </dt>
-                  <dd>
-                    <button
-                      onClick={() =>
-                        router.routes.baz.push({
-                          pathname: { language: 'en', baz: 'sdsds' },
-                        })
-                      }
-                    >
-                      /en/baz
-                    </button>
-                    <br />
-                    <button
-                      onClick={() =>
-                        router.routes.baz.push({
-                          pathname: {
-                            baz: 'sdsdsdsds',
-                          },
-                        })
-                      }
-                    >
-                      /:language/baz/sdsdsdsds
-                    </button>
-                  </dd>
-                  <dt {...(router.route?.key === 'default' ? activeProps : {})}>
-                    DEFAULT
-                  </dt>
-                  <dd>
-                    <button
-                      onClick={() =>
-                        router.routes.default.push({
-                          pathname: {
-                            ...router.route?.pathname,
-                          },
-                        })
-                      }
-                    >
-                      /:language/
-                    </button>
-                    <br />
-                    <button
-                      onClick={() =>
-                        router.routes.default.push({
-                          pathname: { language: 'da' },
-                        })
-                      }
-                    >
-                      /da/
-                    </button>
-                    <br />
-                    <button
-                      onClick={() =>
-                        router.routes.default.push({
-                          pathname: { language: undefined },
-                        })
-                      }
-                    >
-                      /
-                    </button>
-                  </dd>
-                </dl>
-              </dd>
-            </dd>
-          </dl>
-          <dt>router.location</dt>
-          <dd>
-            <pre>{JSON.stringify(router.location)}</pre>
-          </dd>
-          <dt>router.route</dt>
-          <dd>
-            <pre>{JSON.stringify(router.route, null, 2)}</pre>
-          </dd>
-
-          <dl>
-            <dt>router.routes</dt>
-            <dd>
-              <pre>{JSON.stringify(router.routes, null, 2)}</pre>
-            </dd>
-          </dl>
-        </dl>
-      </>
-    )
+  const [search, setSearch] = React.useState({
+    a: `${Date.now()}`,
+    b: { x: '1' },
   })
 
-  return <DemoComponent />
-}
+  const { foo: route } = router.routes
+
+  React.useEffect(() => {
+    route.pushExact((uri) => ({
+      ...uri,
+      search: { ...uri.search, ...search },
+      pathname: { ...uri.pathname, language: 'en' },
+      hash: 'woo',
+    }))
+  }, [search])
+
+  console.log('route search', { ...route.search })
+
+  return (
+    <>
+      <dl>
+        <dt>
+          toUri()
+          <br />
+          <label>a</label>
+          <input
+            value={search.a}
+            onChange={(e) =>
+              setSearch({
+                ...search,
+                a: e.target.value,
+              })
+            }
+          />
+          <label>b.x</label>
+          <input
+            value={search.b.x}
+            onChange={(e) =>
+              setSearch({
+                ...search,
+                b: {
+                  ...search.b,
+                  x: e.target.value,
+                },
+              })
+            }
+          />
+        </dt>
+      </dl>
+      <dl>
+        <dt>current route:</dt>
+        <dd>
+          <pre>{route.search.a}</pre>
+          <pre>{route.search.b?.x}</pre>
+        </dd>
+      </dl>
+      <dl>
+        <dt>ROUTER:</dt>
+        <dd>
+          <pre>{JSON.stringify(router, null, 2)}</pre>
+        </dd>
+      </dl>
+
+      <dl>
+        <dt>Exact Route 1:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              route.pushExact({
+                pathname: { language: 'en' },
+                search: { a: '1' },
+              })
+            }
+          >
+            Set exactly: /en/?a=1
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Exact Route 2:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              route.pushExact({
+                pathname: { language: 'en' },
+                search: { b: { x: '2' } },
+              })
+            }
+          >
+            Set exactly: /en/?b[x]=2
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Exact Route 3:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              router.routes.foo.push({
+                pathname: { language: 'en' },
+                search: {},
+              })
+            }
+          >
+            Set exactly: /en/
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Add `b` to foo:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              router.routes.foo.push({
+                pathname: { language: 'en' },
+                search: {
+                  b: { x: '111' },
+                },
+              })
+            }
+          >
+            Set exactly: /en/
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Add `a` to foo:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              router.routes.foo.push({
+                pathname: { language: 'en' },
+                search: {
+                  a: '222',
+                },
+              })
+            }
+          >
+            Set exactly: /en/
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Add `a` to foobar:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              router.routes.foobar.push({
+                pathname: { language: 'en' },
+                search: {
+                  a: '222',
+                },
+              })
+            }
+          >
+            Set exactly: /en/
+          </button>
+        </dd>
+      </dl>
+      <dl>
+        <dt>Add `zzz` to foobar:</dt>
+        <dd>
+          <button
+            onClick={() =>
+              router.routes.foobar.push({
+                pathname: { language: 'en' },
+                search: {
+                  zzz: '111',
+                },
+              })
+            }
+          >
+            Set exactly: /en/
+          </button>
+        </dd>
+      </dl>
+    </>
+  )
+})
+
+export const Shared_language_params = observer(() => {
+  /** Create the router for the demo with the route list */
+  const [router] = React.useState(
+    () =>
+      new XRouter([FooRoute, BazRoute, DefaultRoute], createMemoryHistory()),
+  )
+
+  const activeProps = {
+    style: { color: 'green', outline: '2px solid green' },
+  }
+
+  return (
+    <>
+      <dl
+        style={{
+          fontFamily: 'consolas, monospace',
+          fontSize: '1.15em',
+        }}
+      >
+        <dl>
+          <dt>INPUT:</dt>
+          <dd>
+            <dt>URL Bar:</dt>
+            <dd>
+              <input
+                style={{ fontSize: '2em' }}
+                value={router.pathname}
+                onChange={(e) => router.replace(e.target.value)}
+              />
+            </dd>
+            <dt>Links:</dt>
+            <dd>
+              <dl>
+                <dt>
+                  LANGUAGE:{' '}
+                  <b>{router.route?.pathname?.language || 'undefined'}</b>
+                </dt>
+                <dd>
+                  {validLanguages.map((language) => (
+                    <>
+                      <div>
+                        <button
+                          onClick={() =>
+                            router.route?.push({
+                              pathname: { language },
+                            })
+                          }
+                        >
+                          {language}
+                        </button>
+                      </div>
+                    </>
+                  ))}
+                </dd>
+                <dt {...(router.route?.key === 'foo' ? activeProps : {})}>
+                  FOO
+                </dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.foo.push({ pathname: { language: 'en' } })
+                    }
+                  >
+                    /en/foo
+                  </button>
+                  <br />
+                  <button
+                    onClick={() =>
+                      router.routes.foo.push({
+                        pathname: {
+                          // Re-use the current route's language param or default to en
+                          language: router.route?.pathname?.language || 'en',
+                        },
+                      })
+                    }
+                  >
+                    /:language/foo
+                  </button>
+                </dd>
+                <dt {...(router.route?.key === 'baz' ? activeProps : {})}>
+                  BAZ
+                </dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.baz.push({
+                        pathname: { language: 'en', baz: 'sdsds' },
+                      })
+                    }
+                  >
+                    /en/baz
+                  </button>
+                  <br />
+                  <button
+                    onClick={() =>
+                      router.routes.baz.push({
+                        pathname: {
+                          baz: 'sdsdsdsds',
+                        },
+                      })
+                    }
+                  >
+                    /:language/baz/sdsdsdsds
+                  </button>
+                </dd>
+                <dt {...(router.route?.key === 'default' ? activeProps : {})}>
+                  DEFAULT
+                </dt>
+                <dd>
+                  <button
+                    onClick={() =>
+                      router.routes.default.push({
+                        pathname: {
+                          ...router.route?.pathname,
+                        },
+                      })
+                    }
+                  >
+                    /:language/
+                  </button>
+                  <br />
+                  <button
+                    onClick={() =>
+                      router.routes.default.push({
+                        pathname: { language: 'da' },
+                      })
+                    }
+                  >
+                    /da/
+                  </button>
+                  <br />
+                  <button
+                    onClick={() =>
+                      router.routes.default.push({
+                        pathname: { language: undefined },
+                      })
+                    }
+                  >
+                    /
+                  </button>
+                </dd>
+              </dl>
+            </dd>
+          </dd>
+        </dl>
+        <dt>router.location</dt>
+        <dd>
+          <pre>pathname: {JSON.stringify(router.pathname)}</pre>
+          <pre>search: {JSON.stringify(router.search)}</pre>
+          <pre>hash: {JSON.stringify(router.hash)}</pre>
+        </dd>
+        <dt>router.route</dt>
+        <dd>
+          <pre>{JSON.stringify(router.route, null, 2)}</pre>
+        </dd>
+
+        <dl>
+          <dt>router.routes</dt>
+          <dd>
+            <pre>{JSON.stringify(router.routes, null, 2)}</pre>
+          </dd>
+        </dl>
+      </dl>
+    </>
+  )
+})
 
 export const Extends_routes = observer(() => {
   const AppRoute = XRoute('app').Resource('/').Type<{
@@ -557,11 +545,7 @@ export const Extends_routes = observer(() => {
       <dd>
         <input
           style={{ fontSize: '2em' }}
-          value={[
-            router.route?.location.pathname,
-            router.route?.location.search,
-            router.route?.location.hash,
-          ].join('')}
+          value={[router.pathname, router.search, router.hash].join('')}
           onChange={(e) => router.replace(e.target.value)}
         />
       </dd>
