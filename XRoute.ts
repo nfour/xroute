@@ -1,6 +1,19 @@
 import type { MergeDeep } from 'type-fest'
-import { LocationType, XRouter } from './XRouter'
+import { LocationType } from './XRouter'
 
+/**
+ * Route definition.
+ *
+ * @example
+ *
+ * const AppRoute = XRoute('app')
+ *   .Resource('/app/:section?')
+ *   .Type<{
+ *     pathname: { section?: 'a'|'b' };
+ *     search: { language?: 'en'|'da' };
+ *     hash?: 'foo'|'bar'
+ *   }>()
+ */
 export const XRoute = <
   KEY extends string,
   RESOURCE extends string = '',
@@ -11,7 +24,6 @@ export const XRoute = <
   location = {} as LOCATION,
 ) => new XRouteConstructor(key, resource, location)
 
-export interface IRouter extends XRouter<any> {}
 export class XRouteConstructor<
   KEY extends string,
   RESOURCE extends string = '',
@@ -53,4 +65,5 @@ export class XRouteConstructor<
     return new XRouteConstructor(key, this.resource, this.location)
   }
 }
+
 export type RouteConfig = ReturnType<typeof XRoute>
