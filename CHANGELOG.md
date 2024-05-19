@@ -1,5 +1,12 @@
 # Changelog
 
+## 10.0.0-0
+
+Rewrite of core to optimize for performance and reduce observable overhead.
+
+Any deprecated methods have been annotated with alternative usages.
+
+
 ## 6.1.0
 
 - Add missing `qs` dependency

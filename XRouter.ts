@@ -265,11 +265,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
       return this.history[method](route)
     }
 
-    console.log({ location })
-
     const { pathname, search, hash } = this.toUriParts(route, location)
-
-    console.log({ pathname, search, hash, location })
 
     this.history[method]({ pathname, search, hash })
   }
