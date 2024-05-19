@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash'
-import { makeAutoObservable, transaction } from 'mobx'
+import { makeObservable, transaction } from 'mobx'
 import { compile } from 'path-to-regexp'
 import * as qs from 'qs'
 import { RouteConfig } from './XRoute'
@@ -38,7 +38,34 @@ export interface LocationType {
  * ], createBrowserHistory(), {})
  */
 export class XRouter<CONFIGS extends RouteConfig[]> {
-  ROUTES!: {
+  /**
+   * A map of routes `{ [route.key]: route }`
+   *
+   * @example
+   *
+   * // Read parameters
+   * router.routes.myRoute.pathname?.myParam // string | undefined
+   *
+   * // Set the route and its parameters
+   * // Can be used to set a route from a different route too
+   * router.routes.myRoute.push({
+   *   pathname: { myParam: 'banana' }, // Optional
+   *   search: { foo: 1 }, // Optional
+   *   hash: 'my has string' // Optional
+   * })
+   *
+   * // on myRoute now...
+   *
+   * router.routes.someOtherRoute.push() // Even the object is optional
+   *
+   * // On someOtherRoute now.
+   *
+   * router.routes.routeWithRequired.replace({
+   *   // router.route is always the activeRoute
+   *   pathname: { myProp: router.route?.pathname?.myParam || 'something' }
+   * })
+   */
+  routes: {
     [C in CONFIGS[number] as C['key']]: LiveXRoute<C, this>
   }
 
@@ -73,57 +100,35 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
     this.history = history
     this.config = config
 
-    makeAutoObservable(this, {
-      definition: false,
-      config: false,
-      routes: false,
-      // location: observable.ref
-    })
+    makeObservable(
+      this,
+      {
+        hash: true,
+        pathname: true,
+        search: true,
+        route: true,
+      },
+      {
+        proxy: false,
+        deep: false,
+      },
+    )
 
     this.historyObserver.listen()
-  }
 
-  /**
-   * A map of routes `{ [route.key]: route }`
-   *
-   * @example
-   *
-   * // Read parameters
-   * router.routes.myRoute.pathname?.myParam // string | undefined
-   *
-   * // Set the route and its parameters
-   * // Can be used to set a route from a different route too
-   * router.routes.myRoute.push({
-   *   pathname: { myParam: 'banana' }, // Optional
-   *   search: { foo: 1 }, // Optional
-   *   hash: 'my has string' // Optional
-   * })
-   *
-   * // on myRoute now...
-   *
-   * router.routes.someOtherRoute.push() // Even the object is optional
-   *
-   * // On someOtherRoute now.
-   *
-   * router.routes.routeWithRequired.replace({
-   *   // router.route is always the activeRoute
-   *   pathname: { myProp: router.route?.pathname?.myParam || 'something' }
-   * })
-   */
-  get routes() {
-    return Object.fromEntries(
+    this.routes = Object.fromEntries(
       this.definition.map((config) => [
         config.key,
         new LiveXRoute(config, this),
       ]),
-    ) as unknown as this['ROUTES']
+    ) as any
   }
 
   /** The currently active route. */
   get route(): undefined | this['ROUTE'] {
     for (const config of this.definition) {
       const route = this.routes[
-        config.key as keyof (typeof this)['routes']
+        config.key as CONFIGS[number]['key']
       ] as this['ROUTE']
 
       if (route.isMatching) return route
@@ -260,9 +265,11 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
       return this.history[method](route)
     }
 
+    console.log({ location })
+
     const { pathname, search, hash } = this.toUriParts(route, location)
 
-    console.log({ pathname, search, hash })
+    console.log({ pathname, search, hash, location })
 
     this.history[method]({ pathname, search, hash })
   }

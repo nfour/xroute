@@ -430,7 +430,8 @@ export const Shared_language_params = observer(() => {
                       })
                     }
                   >
-                    /:language/baz/sdsdsdsds
+                    /:language/baz/sdsdsdsds (will error if language is not set
+                    first)
                   </button>
                 </dd>
                 <dt {...(router.route?.key === 'default' ? activeProps : {})}>

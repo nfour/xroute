@@ -31,16 +31,19 @@ export class LiveXRoute<
         pathname: true,
         search: true,
         hash: true,
-        key: false,
-        resource: false,
+
         push: true,
         pushExact: true,
         replace: true,
         replaceExact: true,
-        toUri: false,
-        toUriExact: false,
+        toUriExact: true,
+        toUri: true,
+
+        key: false,
+        resource: false,
         uri: false,
         location: false,
+        toJSON: false,
       },
       { proxy: false },
     )
@@ -169,7 +172,7 @@ export class LiveXRoute<
     }
   }
 
-  private mergeLocationWithActiveRoute(location?: this['PL']) {
+  protected mergeLocationWithActiveRoute(location?: this['PL']) {
     const activeRoute = this.activeRoute
 
     return {
@@ -185,11 +188,11 @@ export class LiveXRoute<
     }
   }
 
-  private get activeRoute() {
+  protected get activeRoute() {
     return this.#router.route
   }
 
-  private handlePolymorphicInput<P extends object>(
+  protected handlePolymorphicInput<P extends object>(
     input?: P | ((o: any) => P),
   ): P | undefined {
     if (typeof input === 'function') return input(this)
