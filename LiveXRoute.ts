@@ -59,19 +59,32 @@ export class LiveXRoute<
 
   /**
    * Whether this route is matched,
-   * and is also the route which is ordered first
-   * (takes precendent) on construction of the router.
+   * and is also the route which is matched **first** in order of definition in the router.
    */
   get isActive() {
     return this.#router.route?.key === this.key
   }
 
-  /** pathname variables @example resource `/:foo/:bar` to uri `/1/2` resolves `{ foo: '1', bar: '2' }` */
+  /**
+   * Pathname variables, as defined in the `resource` URL pattern.
+   *
+   * @example
+   *
+   * Given uri `/user/:id`
+   * Resolves { id: '123' }
+   */
   get pathname(): CONFIG['location']['pathname'] {
     return this.pathnameMatch?.params ?? {}
   }
 
-  /** search variables @example uri `/?foo=1&bar=2` resolves to `{ foo: '1', bar: '2' }` */
+  /**
+   * Search variables
+   *
+   * @example
+   *
+   * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+   * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+   */
   get search(): CONFIG['location']['search'] {
     return (
       qs.parse(this.#router.search ?? '', {
@@ -81,13 +94,25 @@ export class LiveXRoute<
     )
   }
 
-  /** The hash string
-   * @example `#foooo` resolves `foooo`
+  /**
+   * The hash string
+   *
+   * @example
+   *
+   * Given uri `/some/url/?aaaa=1#foooo`
+   * Resolves 'foooo'
    */
   get hash(): CONFIG['location']['hash'] {
     return this.#router.hash.split('#')[1]
   }
 
+  /**
+   * Pushes a URI update to the history stack.
+   * Input can be a subset of the route's location as it
+   * mMerges the current route with the input.
+   *
+   * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+   */
   push(input?: ((location: this['L']) => this['PL']) | this['PL']) {
     return this.#router.push(
       this,
@@ -95,10 +120,23 @@ export class LiveXRoute<
     )
   }
 
+  /**
+   * Pushes a URI update to the history stack.
+   * Input must be an exact location defined when the route was created.
+   *
+   * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+   */
   pushExact(input: ((location: this['L']) => this['L']) | this['L']) {
     return this.#router.push(this, this.handlePolymorphicInput(input))
   }
 
+  /**
+   * Replaces the current URI in the history stack.
+   * Input can be a subset of the route's location as it
+   * Merges the current route with the input.
+   *
+   * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+   */
   replace(input?: ((route: this['L']) => this['PL']) | this['PL']) {
     return this.#router.replace(
       this,
@@ -106,10 +144,23 @@ export class LiveXRoute<
     )
   }
 
+  /**
+   * Replaces the current URI in the history stack.
+   * Input must be an exact location defined when the route was created.
+   *
+   * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+   */
   replaceExact(input: ((route: this['L']) => this['L']) | this['L']) {
     return this.#router.replace(this, this.handlePolymorphicInput(input))
   }
 
+  /**
+   * Converts the route to a URI string.
+   * Input can be a subset of the route's location as it
+   * Merges the current route with the input.
+   *
+   * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+   */
   toUri(input?: ((route: this['L']) => this['PL']) | this['PL']): string {
     return this.#router.toUri(
       this,
@@ -117,6 +168,12 @@ export class LiveXRoute<
     )
   }
 
+  /**
+   * Converts the route to a URI string.
+   * Input must be an exact location defined when the route was created.
+   *
+   * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+   */
   toUriExact(input: ((route: this['L']) => this['L']) | this['L']) {
     return this.#router.toUri(this, this.handlePolymorphicInput(input))
   }
