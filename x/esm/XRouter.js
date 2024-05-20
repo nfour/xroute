@@ -25,7 +25,21 @@ import { HistoryObserver, } from './HistoryObserver';
  * ], createBrowserHistory(), {})
  */
 export class XRouter {
-    constructor(definition, history, config = {}) {
+    constructor(
+    /**
+     * An array of route configurations. Order matters for finding the active route.
+     */
+    definition, 
+    /**
+     * `history` instance
+     * @example
+     * createBrowserHistory()
+     */
+    history, 
+    /**
+     * Additional config options for various components.
+     */
+    config = {}) {
         Object.defineProperty(this, "definition", {
             enumerable: true,
             configurable: true,
@@ -89,18 +103,33 @@ export class XRouter {
             writable: true,
             value: void 0
         });
+        /**
+         * Current pathname string
+         * @example
+         * '/app'
+         */
         Object.defineProperty(this, "pathname", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: ''
         });
+        /**
+         * Current search string
+         * @example
+         * '?foo=1'
+         */
         Object.defineProperty(this, "search", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: ''
         });
+        /**
+         * Current hash string
+         * @example
+         * '#my-hash'
+         */
         Object.defineProperty(this, "hash", {
             enumerable: true,
             configurable: true,
@@ -113,24 +142,28 @@ export class XRouter {
             writable: true,
             value: new HistoryObserver(() => this.history, ({ location }) => this.setLocation(location))
         });
+        /** `history.go()` */
         Object.defineProperty(this, "go", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: (...args) => this.history.go(...args)
         });
+        /** `history.back()` */
         Object.defineProperty(this, "back", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: () => this.history.back()
         });
+        /** `history.forward()` */
         Object.defineProperty(this, "forward", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: () => this.history.forward()
         });
+        /** `history.block()` */
         Object.defineProperty(this, "block", {
             enumerable: true,
             configurable: true,
@@ -141,9 +174,7 @@ export class XRouter {
         this.history = history;
         this.config = config;
         makeAutoObservable(this, {
-            definition: false,
             history: false,
-            historyObserver: false,
             toJSON: false,
             routes: false,
         });

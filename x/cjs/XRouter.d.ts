@@ -1,7 +1,7 @@
 import * as qs from 'qs';
 import { RouteConfig } from './XRoute';
 import { LiveXRoute } from './LiveXRoute';
-import { HistoryObserver, HistorySubset, LocationPrimitive } from './HistoryObserver';
+import { HistorySubset, LocationPrimitive } from './HistoryObserver';
 export interface LocationType {
     pathname: Record<string, any>;
     search: Record<string, any>;
@@ -29,18 +29,25 @@ export interface LocationType {
  * ], createBrowserHistory(), {})
  */
 export declare class XRouter<CONFIGS extends RouteConfig[]> {
+    /**
+     * An array of route configurations. Order matters for finding the active route.
+     */
     definition: CONFIGS;
+    /**
+     * `history` instance
+     * @example
+     * createBrowserHistory()
+     */
     history: HistorySubset;
+    /**
+     * Additional config options for various components.
+     */
     config: {
-        /** @optional `qs` library option OVERRIDES (careful!) */
+        /** @optional `qs` library option overrides */
         qs?: {
             parse?: qs.IParseOptions;
             format?: qs.IStringifyOptions;
         };
-        /**
-         * Passed to the mobx reaction which is responsible for updating the URI when the observable state changes.
-         * @default is 1ms */
-        delayToUpdateUri?: number;
     };
     /**
      * A map of routes `{ [route.key]: route }`
@@ -74,36 +81,65 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     };
     ROUTE: LiveXRoute<CONFIGS[number], this>;
     ROUTE_LOCATION: this['ROUTE']['PL'];
-    pathname: string;
-    search: string;
-    hash: string;
-    historyObserver: HistoryObserver;
-    constructor(definition: CONFIGS, history: HistorySubset, config?: {
-        /** @optional `qs` library option OVERRIDES (careful!) */
+    constructor(
+    /**
+     * An array of route configurations. Order matters for finding the active route.
+     */
+    definition: CONFIGS, 
+    /**
+     * `history` instance
+     * @example
+     * createBrowserHistory()
+     */
+    history: HistorySubset, 
+    /**
+     * Additional config options for various components.
+     */
+    config?: {
+        /** @optional `qs` library option overrides */
         qs?: {
             parse?: qs.IParseOptions;
             format?: qs.IStringifyOptions;
         };
-        /**
-         * Passed to the mobx reaction which is responsible for updating the URI when the observable state changes.
-         * @default is 1ms */
-        delayToUpdateUri?: number;
     });
+    /**
+     * Current pathname string
+     * @example
+     * '/app'
+     */
+    pathname: string;
+    /**
+     * Current search string
+     * @example
+     * '?foo=1'
+     */
+    search: string;
+    /**
+     * Current hash string
+     * @example
+     * '#my-hash'
+     */
+    hash: string;
+    private historyObserver;
     /** The currently active route. */
     get route(): undefined | this['ROUTE'];
     /** Converts a route to a string path. */
     toUri<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): string;
-    /** history.push() a given route */
+    /** `history.push()` a given route */
     push<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): void;
-    /** Equal to history.push(pathname) */
     push(fullPath: string): void;
-    /** history.replace() a given route */
-    /** Equal to history.replace(pathname) */
+    /**
+     * `history.replace()` a given route
+     */
     replace<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): void;
     replace(fullPath: string): void;
+    /** `history.go()` */
     go: HistorySubset['go'];
+    /** `history.back()` */
     back: HistorySubset['back'];
+    /** `history.forward()` */
     forward: HistorySubset['forward'];
+    /** `history.block()` */
     block: HistorySubset['block'];
     toJSON(): {
         pathname: string;
@@ -111,7 +147,6 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         hash: string;
         route: {
             key: CONFIGS[number]["key"];
-            /** Equal to history.push(pathname) */
             resource: CONFIGS[number]["resource"];
             pathname: CONFIGS[number]["location"]["pathname"];
             search: CONFIGS[number]["location"]["search"];
@@ -122,7 +157,6 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         routes: {
             [k: string]: {
                 key: any;
-                /** Equal to history.push(pathname) */
                 resource: any;
                 pathname: any;
                 search: any;

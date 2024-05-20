@@ -72,44 +72,101 @@ class LiveXRoute {
     }
     /**
      * Whether this route is matched,
-     * and is also the route which is ordered first
-     * (takes precendent) on construction of the router.
+     * and is also the route which is matched **first** in order of definition in the router.
      */
     get isActive() {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").route?.key === this.key;
     }
-    /** pathname variables @example resource `/:foo/:bar` to uri `/1/2` resolves `{ foo: '1', bar: '2' }` */
+    /**
+     * Pathname variables, as defined in the `resource` URL pattern.
+     *
+     * @example
+     *
+     * Given uri `/user/:id`
+     * Resolves { id: '123' }
+     */
     get pathname() {
         return this.pathnameMatch?.params ?? {};
     }
-    /** search variables @example uri `/?foo=1&bar=2` resolves to `{ foo: '1', bar: '2' }` */
+    /**
+     * Search variables
+     *
+     * @example
+     *
+     * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+     * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+     */
     get search() {
         return (qs.parse(__classPrivateFieldGet(this, _LiveXRoute_router, "f").search ?? '', {
             ignoreQueryPrefix: true,
             ...__classPrivateFieldGet(this, _LiveXRoute_router, "f").config.qs?.parse,
         }) ?? {});
     }
-    /** The hash string
-     * @example `#foooo` resolves `foooo`
+    /**
+     * The hash string
+     *
+     * @example
+     *
+     * Given uri `/some/url/?aaaa=1#foooo`
+     * Resolves 'foooo'
      */
     get hash() {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").hash.split('#')[1];
     }
+    /**
+     * Pushes a URI update to the history stack.
+     * Input can be a subset of the route's location as it
+     * mMerges the current route with the input.
+     *
+     * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+     */
     push(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").push(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
+    /**
+     * Pushes a URI update to the history stack.
+     * Input must be an exact location defined when the route was created.
+     *
+     * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+     */
     pushExact(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").push(this, this.handlePolymorphicInput(input));
     }
+    /**
+     * Replaces the current URI in the history stack.
+     * Input can be a subset of the route's location as it
+     * Merges the current route with the input.
+     *
+     * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+     */
     replace(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").replace(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
+    /**
+     * Replaces the current URI in the history stack.
+     * Input must be an exact location defined when the route was created.
+     *
+     * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+     */
     replaceExact(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").replace(this, this.handlePolymorphicInput(input));
     }
+    /**
+     * Converts the route to a URI string.
+     * Input can be a subset of the route's location as it
+     * Merges the current route with the input.
+     *
+     * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
+     */
     toUri(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").toUri(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
+    /**
+     * Converts the route to a URI string.
+     * Input must be an exact location defined when the route was created.
+     *
+     * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
+     */
     toUriExact(input) {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").toUri(this, this.handlePolymorphicInput(input));
     }
