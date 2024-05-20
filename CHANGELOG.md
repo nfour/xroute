@@ -1,5 +1,10 @@
 # Changelog
 
+## 11.0.0
+
+- Refined refactor from 10.0.0-0
+- Tested
+
 ## 10.0.0-0
 
 Rewrite of core to optimize for performance and reduce observable overhead.
