@@ -111,6 +111,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         hash: string;
         route: {
             key: CONFIGS[number]["key"];
+            /** Equal to history.push(pathname) */
             resource: CONFIGS[number]["resource"];
             pathname: CONFIGS[number]["location"]["pathname"];
             search: CONFIGS[number]["location"]["search"];
@@ -121,6 +122,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
         routes: {
             [k: string]: {
                 key: any;
+                /** Equal to history.push(pathname) */
                 resource: any;
                 pathname: any;
                 search: any;

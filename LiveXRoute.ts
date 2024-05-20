@@ -1,4 +1,4 @@
-import { makeObservable } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { RouteConfig } from './XRoute'
 import { type XRouter } from './XRouter'
 import { match } from 'path-to-regexp'
@@ -23,30 +23,9 @@ export class LiveXRoute<
   constructor(private config: CONFIG, router: ROUTER) {
     this.#router = router
 
-    makeObservable(
-      this,
-      {
-        isActive: true,
-        isMatching: true,
-        pathname: true,
-        search: true,
-        hash: true,
-
-        push: true,
-        pushExact: true,
-        replace: true,
-        replaceExact: true,
-        toUriExact: true,
-        toUri: true,
-
-        key: false,
-        resource: false,
-        uri: false,
-        location: false,
-        toJSON: false,
-      },
-      { proxy: false },
-    )
+    makeAutoObservable(this, {
+      toJSON: false,
+    })
   }
 
   get key(): CONFIG['key'] {
@@ -57,7 +36,7 @@ export class LiveXRoute<
     return this.config.resource
   }
 
-  private get pathnameMatch() {
+  get pathnameMatch() {
     const pathname = this.#router.pathname
 
     if (pathname == null) return

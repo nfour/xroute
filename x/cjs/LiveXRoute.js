@@ -44,24 +44,9 @@ class LiveXRoute {
             value: void 0
         });
         __classPrivateFieldSet(this, _LiveXRoute_router, router, "f");
-        (0, mobx_1.makeObservable)(this, {
-            isActive: true,
-            isMatching: true,
-            pathname: true,
-            search: true,
-            hash: true,
-            push: true,
-            pushExact: true,
-            replace: true,
-            replaceExact: true,
-            toUriExact: true,
-            toUri: true,
-            key: false,
-            resource: false,
-            uri: false,
-            location: false,
+        (0, mobx_1.makeAutoObservable)(this, {
             toJSON: false,
-        }, { proxy: false });
+        });
     }
     get key() {
         return this.config.key;

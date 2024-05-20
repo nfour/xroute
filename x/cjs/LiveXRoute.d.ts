@@ -15,7 +15,7 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
     constructor(config: CONFIG, router: ROUTER);
     get key(): CONFIG['key'];
     get resource(): CONFIG['resource'];
-    private get pathnameMatch();
+    get pathnameMatch(): import("path-to-regexp").MatchResult<object> | undefined;
     /**
      * Whether this route's `resource` matches the current `pathname`.
      * More than one route can match at a time.

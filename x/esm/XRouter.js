@@ -1,5 +1,4 @@
-import { isEqual } from 'lodash';
-import { makeObservable, transaction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import { compile } from 'path-to-regexp';
 import * as qs from 'qs';
 import { LiveXRoute } from './LiveXRoute';
@@ -141,14 +140,12 @@ export class XRouter {
         this.definition = definition;
         this.history = history;
         this.config = config;
-        makeObservable(this, {
-            hash: true,
-            pathname: true,
-            search: true,
-            route: true,
-        }, {
-            proxy: false,
-            deep: false,
+        makeAutoObservable(this, {
+            definition: false,
+            history: false,
+            historyObserver: false,
+            toJSON: false,
+            routes: false,
         });
         this.historyObserver.listen();
         this.routes = Object.fromEntries(this.definition.map((config) => [
@@ -189,17 +186,12 @@ export class XRouter {
         };
     }
     setLocation(next = {}) {
-        if (isEqual({
-            pathname: this.pathname,
-            search: this.search,
-            hash: this.hash,
-        }, next))
-            return;
-        transaction(() => {
+        if (this.pathname !== next.pathname)
             this.pathname = next.pathname ?? '';
+        if (this.search !== next.search)
             this.search = next.search ?? '';
+        if (this.hash !== next.hash)
             this.hash = next.hash ?? '';
-        });
     }
     /** Converts a route to a { pathname, search, hash } parts. */
     toUriParts(route, location) {
@@ -232,6 +224,7 @@ export class XRouter {
             return this.history[method](route);
         }
         const { pathname, search, hash } = this.toUriParts(route, location);
+        // this.setLocation({ pathname, search, hash })
         this.history[method]({ pathname, search, hash });
     }
 }

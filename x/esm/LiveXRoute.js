@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _LiveXRoute_router;
-import { makeObservable } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import { match } from 'path-to-regexp';
 import * as qs from 'qs';
 /**
@@ -41,24 +41,9 @@ export class LiveXRoute {
             value: void 0
         });
         __classPrivateFieldSet(this, _LiveXRoute_router, router, "f");
-        makeObservable(this, {
-            isActive: true,
-            isMatching: true,
-            pathname: true,
-            search: true,
-            hash: true,
-            push: true,
-            pushExact: true,
-            replace: true,
-            replaceExact: true,
-            toUriExact: true,
-            toUri: true,
-            key: false,
-            resource: false,
-            uri: false,
-            location: false,
+        makeAutoObservable(this, {
             toJSON: false,
-        }, { proxy: false });
+        });
     }
     get key() {
         return this.config.key;

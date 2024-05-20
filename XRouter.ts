@@ -1,5 +1,4 @@
-import { isEqual } from 'lodash'
-import { makeObservable, transaction } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { compile } from 'path-to-regexp'
 import * as qs from 'qs'
 import { RouteConfig } from './XRoute'
@@ -100,19 +99,13 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
     this.history = history
     this.config = config
 
-    makeObservable(
-      this,
-      {
-        hash: true,
-        pathname: true,
-        search: true,
-        route: true,
-      },
-      {
-        proxy: false,
-        deep: false,
-      },
-    )
+    makeAutoObservable(this, {
+      definition: false,
+      history: false,
+      historyObserver: false,
+      toJSON: false,
+      routes: false,
+    })
 
     this.historyObserver.listen()
 
@@ -198,23 +191,9 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
   }
 
   protected setLocation(next: LocationPrimitive = {}) {
-    if (
-      isEqual(
-        {
-          pathname: this.pathname,
-          search: this.search,
-          hash: this.hash,
-        },
-        next,
-      )
-    )
-      return
-
-    transaction(() => {
-      this.pathname = next.pathname ?? ''
-      this.search = next.search ?? ''
-      this.hash = next.hash ?? ''
-    })
+    if (this.pathname !== next.pathname) this.pathname = next.pathname ?? ''
+    if (this.search !== next.search) this.search = next.search ?? ''
+    if (this.hash !== next.hash) this.hash = next.hash ?? ''
   }
 
   /** Converts a route to a { pathname, search, hash } parts. */
@@ -267,6 +246,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
 
     const { pathname, search, hash } = this.toUriParts(route, location)
 
+    // this.setLocation({ pathname, search, hash })
     this.history[method]({ pathname, search, hash })
   }
 }

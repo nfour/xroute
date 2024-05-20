@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.XRouter = void 0;
-const lodash_1 = require("lodash");
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
@@ -144,14 +143,12 @@ class XRouter {
         this.definition = definition;
         this.history = history;
         this.config = config;
-        (0, mobx_1.makeObservable)(this, {
-            hash: true,
-            pathname: true,
-            search: true,
-            route: true,
-        }, {
-            proxy: false,
-            deep: false,
+        (0, mobx_1.makeAutoObservable)(this, {
+            definition: false,
+            history: false,
+            historyObserver: false,
+            toJSON: false,
+            routes: false,
         });
         this.historyObserver.listen();
         this.routes = Object.fromEntries(this.definition.map((config) => [
@@ -192,17 +189,12 @@ class XRouter {
         };
     }
     setLocation(next = {}) {
-        if ((0, lodash_1.isEqual)({
-            pathname: this.pathname,
-            search: this.search,
-            hash: this.hash,
-        }, next))
-            return;
-        (0, mobx_1.transaction)(() => {
+        if (this.pathname !== next.pathname)
             this.pathname = next.pathname ?? '';
+        if (this.search !== next.search)
             this.search = next.search ?? '';
+        if (this.hash !== next.hash)
             this.hash = next.hash ?? '';
-        });
     }
     /** Converts a route to a { pathname, search, hash } parts. */
     toUriParts(route, location) {
@@ -235,6 +227,7 @@ class XRouter {
             return this.history[method](route);
         }
         const { pathname, search, hash } = this.toUriParts(route, location);
+        // this.setLocation({ pathname, search, hash })
         this.history[method]({ pathname, search, hash });
     }
 }
