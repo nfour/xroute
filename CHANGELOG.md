@@ -1,5 +1,10 @@
 # Changelog
 
+## 12.0.0
+
+- Write better inline JSDOC comments for methods
+- Remove unused config option
+  
 ## 11.0.0
 
 - Refined refactor from 10.0.0-0
