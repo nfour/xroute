@@ -20,6 +20,7 @@ const UserProfileRoute = HomeRoute.Extend('userProfile')
   .Type<{
     pathname: { userId: string }
     search: { profileSection: 'profile' | 'preferences' }
+    hash?: 'foo' | 'baz'
   }>()
 
 const router = new XRouter([UserProfileRoute, HomeRoute], createHashHistory())
@@ -56,7 +57,10 @@ router.routes.home.push({
 // Navigate to: /de/user/55
 router.push(UserProfileRoute, {
   pathname: { userId: '55' },
-  search: { language: 'de' },
+  search: { language: 'de', profileSection: 'profile' },
+  // hash: undefined,
+  // hash: 'notvalid',
+  hash: 'baz',
 })
 
 // Read route properties:

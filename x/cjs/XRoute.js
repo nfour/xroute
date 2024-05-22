@@ -38,7 +38,7 @@ class XRouteConstructor {
         });
     }
     Resource(r) {
-        return new XRouteConstructor(this.key, `${this.resource}${r}`, this.location);
+        return new XRouteConstructor(this.key, `${this.resource}${r}`.replace('//', '/'), this.location);
     }
     Type(l) {
         return new XRouteConstructor(this.key, this.resource, l);

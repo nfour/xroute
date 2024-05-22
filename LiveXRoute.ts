@@ -3,7 +3,10 @@ import { RouteConfig } from './XRoute'
 import { type XRouter } from './XRouter'
 import { match } from 'path-to-regexp'
 import * as qs from 'qs'
-import type { PartialDeep } from 'type-fest'
+
+type Partial2Deep<T, DEPTH = 1> = {
+  [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>
+}
 
 /**
  * A "live" route, typically found at:
@@ -16,9 +19,9 @@ export class LiveXRoute<
 > {
   #router: ROUTER
   /** Deep partial config location */
-  public PL!: PartialDeep<CONFIG['location']>
+  public LOCATION_INPUT!: Partial2Deep<CONFIG['location']>
   /** Config location */
-  public L!: CONFIG['location']
+  public LOCATION!: CONFIG['location']
 
   constructor(private config: CONFIG, router: ROUTER) {
     this.#router = router
@@ -34,6 +37,15 @@ export class LiveXRoute<
 
   get resource(): CONFIG['resource'] {
     return this.config.resource
+  }
+
+  /** Warning: Use this.pathname, this.search, this.hash for optimal observability performance */
+  get location(): this['LOCATION'] {
+    return {
+      pathname: this.pathname,
+      search: this.search,
+      hash: this.hash,
+    }
   }
 
   get pathnameMatch() {
@@ -113,7 +125,11 @@ export class LiveXRoute<
    *
    * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
    */
-  push(input?: ((location: this['L']) => this['PL']) | this['PL']) {
+  push(
+    input?:
+      | ((location: this['LOCATION']) => this['LOCATION_INPUT'])
+      | this['LOCATION_INPUT'],
+  ) {
     return this.#router.push(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
@@ -126,7 +142,11 @@ export class LiveXRoute<
    *
    * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
    */
-  pushExact(input: ((location: this['L']) => this['L']) | this['L']) {
+  pushExact(
+    input:
+      | ((location: this['LOCATION']) => this['LOCATION'])
+      | this['LOCATION'],
+  ) {
     return this.#router.push(this, this.handlePolymorphicInput(input))
   }
 
@@ -137,7 +157,11 @@ export class LiveXRoute<
    *
    * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
    */
-  replace(input?: ((route: this['L']) => this['PL']) | this['PL']) {
+  replace(
+    input?:
+      | ((route: this['LOCATION']) => this['LOCATION_INPUT'])
+      | this['LOCATION_INPUT'],
+  ) {
     return this.#router.replace(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
@@ -150,7 +174,9 @@ export class LiveXRoute<
    *
    * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
    */
-  replaceExact(input: ((route: this['L']) => this['L']) | this['L']) {
+  replaceExact(
+    input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION'],
+  ) {
     return this.#router.replace(this, this.handlePolymorphicInput(input))
   }
 
@@ -161,7 +187,11 @@ export class LiveXRoute<
    *
    * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
    */
-  toUri(input?: ((route: this['L']) => this['PL']) | this['PL']): string {
+  toUri(
+    input?:
+      | ((route: this['LOCATION']) => this['LOCATION_INPUT'])
+      | this['LOCATION_INPUT'],
+  ): string {
     return this.#router.toUri(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
@@ -174,7 +204,9 @@ export class LiveXRoute<
    *
    * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
    */
-  toUriExact(input: ((route: this['L']) => this['L']) | this['L']) {
+  toUriExact(
+    input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION'],
+  ) {
     return this.#router.toUri(this, this.handlePolymorphicInput(input))
   }
 
@@ -184,15 +216,6 @@ export class LiveXRoute<
       return this.toUri()
     } catch {
       return undefined
-    }
-  }
-
-  /** @deprecated Use router.pathname, router.search, router.hash */
-  get location() {
-    return {
-      pathname: this.#router.pathname,
-      search: this.#router.search,
-      hash: this.#router.hash,
     }
   }
 
@@ -208,7 +231,7 @@ export class LiveXRoute<
     }
   }
 
-  protected mergeLocationWithActiveRoute(location?: this['PL']) {
+  protected mergeLocationWithActiveRoute(location?: this['LOCATION_INPUT']) {
     const activeRoute = this.activeRoute
 
     return {

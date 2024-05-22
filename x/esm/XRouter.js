@@ -91,6 +91,12 @@ export class XRouter {
             writable: true,
             value: void 0
         });
+        Object.defineProperty(this, "CONFIGS", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "ROUTE", {
             enumerable: true,
             configurable: true,
@@ -193,15 +199,18 @@ export class XRouter {
         }
     }
     /** Converts a route to a string path. */
-    toUri(route, location) {
-        const { pathname, search, hash } = this.toUriParts(route, location);
+    toUri(config, location) {
+        const { pathname, search, hash } = this.toUriParts(config, location);
         return `${pathname}${search}${hash}`;
     }
-    push(route, location) {
-        this.navigate(route, location, 'push');
+    push(config, location) {
+        this.navigate(config, location, 'push');
     }
-    replace(route, location) {
-        this.navigate(route, location, 'replace');
+    /**
+     * `history.replace()` a given route
+     */
+    replace(config, location) {
+        this.navigate(config, location, 'replace');
     }
     toJSON() {
         return {
@@ -225,8 +234,8 @@ export class XRouter {
             this.hash = next.hash ?? '';
     }
     /** Converts a route to a { pathname, search, hash } parts. */
-    toUriParts(route, location) {
-        const { resource, key } = route;
+    toUriParts(config, location) {
+        const { resource, key } = config;
         try {
             const pathname = compile(resource, {
                 encode: encodeURI,
@@ -255,7 +264,7 @@ export class XRouter {
             return this.history[method](route);
         }
         const { pathname, search, hash } = this.toUriParts(route, location);
-        // this.setLocation({ pathname, search, hash })
+        this.setLocation({ pathname, search, hash });
         this.history[method]({ pathname, search, hash });
     }
 }

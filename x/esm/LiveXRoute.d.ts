@@ -1,6 +1,8 @@
 import { RouteConfig } from './XRoute';
 import { type XRouter } from './XRouter';
-import type { PartialDeep } from 'type-fest';
+type Partial2Deep<T, DEPTH = 1> = {
+    [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>;
+};
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -9,12 +11,14 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
     #private;
     private config;
     /** Deep partial config location */
-    PL: PartialDeep<CONFIG['location']>;
+    LOCATION_INPUT: Partial2Deep<CONFIG['location']>;
     /** Config location */
-    L: CONFIG['location'];
+    LOCATION: CONFIG['location'];
     constructor(config: CONFIG, router: ROUTER);
     get key(): CONFIG['key'];
     get resource(): CONFIG['resource'];
+    /** Warning: Use this.pathname, this.search, this.hash for optimal observability performance */
+    get location(): this['LOCATION'];
     get pathnameMatch(): import("path-to-regexp").MatchResult<object> | undefined;
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -60,14 +64,14 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      *
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
-    push(input?: ((location: this['L']) => this['PL']) | this['PL']): void;
+    push(input?: ((location: this['LOCATION']) => this['LOCATION_INPUT']) | this['LOCATION_INPUT']): void;
     /**
      * Pushes a URI update to the history stack.
      * Input must be an exact location defined when the route was created.
      *
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
-    pushExact(input: ((location: this['L']) => this['L']) | this['L']): void;
+    pushExact(input: ((location: this['LOCATION']) => this['LOCATION']) | this['LOCATION']): void;
     /**
      * Replaces the current URI in the history stack.
      * Input can be a subset of the route's location as it
@@ -75,14 +79,14 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      *
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
-    replace(input?: ((route: this['L']) => this['PL']) | this['PL']): void;
+    replace(input?: ((route: this['LOCATION']) => this['LOCATION_INPUT']) | this['LOCATION_INPUT']): void;
     /**
      * Replaces the current URI in the history stack.
      * Input must be an exact location defined when the route was created.
      *
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
-    replaceExact(input: ((route: this['L']) => this['L']) | this['L']): void;
+    replaceExact(input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION']): void;
     /**
      * Converts the route to a URI string.
      * Input can be a subset of the route's location as it
@@ -90,22 +94,16 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      *
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
-    toUri(input?: ((route: this['L']) => this['PL']) | this['PL']): string;
+    toUri(input?: ((route: this['LOCATION']) => this['LOCATION_INPUT']) | this['LOCATION_INPUT']): string;
     /**
      * Converts the route to a URI string.
      * Input must be an exact location defined when the route was created.
      *
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
-    toUriExact(input: ((route: this['L']) => this['L']) | this['L']): string;
+    toUriExact(input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION']): string;
     /** @deprecated use toUri() */
     get uri(): string | undefined;
-    /** @deprecated Use router.pathname, router.search, router.hash */
-    get location(): {
-        pathname: string;
-        search: string;
-        hash: string;
-    };
     toJSON(): {
         key: CONFIG["key"];
         resource: CONFIG["resource"];
@@ -115,7 +113,7 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
         isActive: boolean;
         isMatching: boolean;
     };
-    protected mergeLocationWithActiveRoute(location?: this['PL']): {
+    protected mergeLocationWithActiveRoute(location?: this['LOCATION_INPUT']): {
         pathname: any;
         search: any;
         hash: any;
@@ -123,3 +121,4 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
     protected get activeRoute(): ROUTER["ROUTE"] | undefined;
     protected handlePolymorphicInput<P extends object>(input?: P | ((o: any) => P)): P | undefined;
 }
+export {};

@@ -2,9 +2,9 @@ import * as qs from 'qs';
 import { RouteConfig } from './XRoute';
 import { LiveXRoute } from './LiveXRoute';
 import { HistorySubset, LocationPrimitive } from './HistoryObserver';
-export interface LocationType {
-    pathname: Record<string, any>;
-    search: Record<string, any>;
+export interface LocationShape {
+    pathname: {};
+    search: {};
     hash?: string;
 }
 /**
@@ -79,8 +79,9 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     routes: {
         [C in CONFIGS[number] as C['key']]: LiveXRoute<C, this>;
     };
+    CONFIGS: CONFIGS[number];
     ROUTE: LiveXRoute<CONFIGS[number], this>;
-    ROUTE_LOCATION: this['ROUTE']['PL'];
+    ROUTE_LOCATION: this['ROUTE']['LOCATION'];
     constructor(
     /**
      * An array of route configurations. Order matters for finding the active route.
@@ -124,15 +125,12 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     /** The currently active route. */
     get route(): undefined | this['ROUTE'];
     /** Converts a route to a string path. */
-    toUri<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): string;
-    /** `history.push()` a given route */
-    push<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): void;
-    push(fullPath: string): void;
+    toUri<CONFIG extends RouteConfig>(config: CONFIG, location?: this['ROUTE_LOCATION']): string;
+    push<CONFIG extends RouteConfig>(config: CONFIG | string, location?: this['ROUTE_LOCATION']): void;
     /**
      * `history.replace()` a given route
      */
-    replace<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): void;
-    replace(fullPath: string): void;
+    replace<CONFIG extends RouteConfig>(config: CONFIG | string, location?: this['ROUTE_LOCATION']): void;
     /** `history.go()` */
     go: HistorySubset['go'];
     /** `history.back()` */
@@ -169,7 +167,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     };
     protected setLocation(next?: LocationPrimitive): void;
     /** Converts a route to a { pathname, search, hash } parts. */
-    protected toUriParts<ROUTE extends this['ROUTE']>(route: ROUTE, location?: this['ROUTE_LOCATION']): {
+    protected toUriParts<CONFIG extends this['CONFIGS']>(config: CONFIG, location?: this['ROUTE_LOCATION']): {
         pathname: string;
         search: string;
         hash: string;
@@ -177,5 +175,5 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     /**
      * Be aware, toPath will throw if missing params.
      */
-    protected navigate<ROUTE extends this['ROUTE']>(route: ROUTE | string, location?: this['ROUTE_LOCATION'], method?: 'push' | 'replace'): void;
+    protected navigate<CONFIG extends this['CONFIGS']>(route: CONFIG | string, location?: this['ROUTE_LOCATION'], method?: 'push' | 'replace'): void;
 }

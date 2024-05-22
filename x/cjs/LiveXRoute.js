@@ -30,14 +30,14 @@ class LiveXRoute {
         });
         _LiveXRoute_router.set(this, void 0);
         /** Deep partial config location */
-        Object.defineProperty(this, "PL", {
+        Object.defineProperty(this, "LOCATION_INPUT", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: void 0
         });
         /** Config location */
-        Object.defineProperty(this, "L", {
+        Object.defineProperty(this, "LOCATION", {
             enumerable: true,
             configurable: true,
             writable: true,
@@ -53,6 +53,14 @@ class LiveXRoute {
     }
     get resource() {
         return this.config.resource;
+    }
+    /** Warning: Use this.pathname, this.search, this.hash for optimal observability performance */
+    get location() {
+        return {
+            pathname: this.pathname,
+            search: this.search,
+            hash: this.hash,
+        };
     }
     get pathnameMatch() {
         const pathname = __classPrivateFieldGet(this, _LiveXRoute_router, "f").pathname;
@@ -178,14 +186,6 @@ class LiveXRoute {
         catch {
             return undefined;
         }
-    }
-    /** @deprecated Use router.pathname, router.search, router.hash */
-    get location() {
-        return {
-            pathname: __classPrivateFieldGet(this, _LiveXRoute_router, "f").pathname,
-            search: __classPrivateFieldGet(this, _LiveXRoute_router, "f").search,
-            hash: __classPrivateFieldGet(this, _LiveXRoute_router, "f").hash,
-        };
     }
     toJSON() {
         return {

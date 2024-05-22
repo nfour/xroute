@@ -1,5 +1,5 @@
-import type { MergeDeep } from 'type-fest'
-import { LocationType } from './XRouter'
+import type { Merge, MergeDeep, Replace } from 'type-fest'
+import { type LocationType } from './XRouter'
 
 /**
  * Route definition.
@@ -35,14 +35,12 @@ export class XRouteConstructor<
     public location = {} as LOCATION,
   ) {}
 
-  Resource<R extends string>(
-    r: R,
-  ): XRouteConstructor<KEY, `${RESOURCE}${R}`, LOCATION> {
+  Resource<R extends string>(r: R) {
     return new XRouteConstructor(
       this.key,
-      `${this.resource}${r}`,
+      `${this.resource}${r}`.replace('//', '/'),
       this.location,
-    )
+    ) as XRouteConstructor<KEY, Replace<`${RESOURCE}${R}`, '//', '/'>, LOCATION>
   }
 
   Type<T extends LocationType>(
@@ -51,10 +49,13 @@ export class XRouteConstructor<
     KEY,
     RESOURCE,
     {
-      pathname: MergeDeep<LOCATION['pathname'], T['pathname']>
+      pathname: Merge<LOCATION['pathname'], T['pathname']>
       search: MergeDeep<LOCATION['search'], T['search']>
-      hash: T['hash'] extends undefined | string ? T['hash'] : LOCATION['hash']
-    }
+    } & (T extends { hash: string }
+      ? { hash: T['hash'] }
+      : T extends { hash?: string }
+      ? { hash?: T['hash'] }
+      : { hash?: LOCATION['hash'] })
   > {
     return new XRouteConstructor(this.key, this.resource, l as any)
   }
@@ -66,4 +67,8 @@ export class XRouteConstructor<
   }
 }
 
-export type RouteConfig = ReturnType<typeof XRoute>
+export type RouteConfig = {
+  key: string
+  resource: string
+  location: LocationType
+}
