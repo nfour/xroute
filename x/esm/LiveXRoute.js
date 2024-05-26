@@ -9,21 +9,46 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _LiveXRoute_router;
-import { makeAutoObservable } from 'mobx';
+var _LiveXRoute_router, _LiveXRoute_searchReactor, _LiveXRoute_pathnameReactor;
+import { makeAutoObservable, reaction, } from 'mobx';
 import { match } from 'path-to-regexp';
 import * as qs from 'qs';
+import { isEqual, set, unset } from 'lodash';
+import microdiff from 'microdiff';
+class Reactor {
+    constructor(fn, effect, options = {}) {
+        Object.defineProperty(this, "dispose", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: undefined
+        });
+        this.dispose?.();
+        this.dispose = reaction(fn, effect, {
+            fireImmediately: true,
+            equals: isEqual,
+            ...options,
+        });
+        return this;
+    }
+}
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
  */
 export class LiveXRoute {
-    constructor(config, router) {
+    constructor(config, router, options = {}) {
         Object.defineProperty(this, "config", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: config
+        });
+        Object.defineProperty(this, "options", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: options
         });
         _LiveXRoute_router.set(this, void 0);
         /** Deep partial config location */
@@ -40,9 +65,71 @@ export class LiveXRoute {
             writable: true,
             value: void 0
         });
+        _LiveXRoute_searchReactor.set(this, new Reactor(() => qs.parse(__classPrivateFieldGet(this, _LiveXRoute_router, "f").search, {
+            ignoreQueryPrefix: true,
+            ...__classPrivateFieldGet(this, _LiveXRoute_router, "f").options.qs?.parse,
+        }), (search) => {
+            if (!this.options.useOptimizedObservability) {
+                this.search = search;
+                return;
+            }
+            diffMerge(this.search, search);
+        }));
+        _LiveXRoute_pathnameReactor.set(this, new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
+            if (!this.options.useOptimizedObservability) {
+                this.pathname = pathname;
+                return;
+            }
+            diffMerge(this.pathname, pathname);
+        })
+        /** Cleanup reactions */
+        );
+        /** Cleanup reactions */
+        Object.defineProperty(this, "dispose", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: () => {
+                __classPrivateFieldGet(this, _LiveXRoute_searchReactor, "f").dispose?.();
+                __classPrivateFieldGet(this, _LiveXRoute_pathnameReactor, "f").dispose?.();
+            }
+        });
+        /**
+         * Pathname variables, as defined in the `resource` URL pattern.
+         *
+         * @example
+         *
+         * Given uri `/user/:id`
+         * Resolves { id: '123' }
+         */
+        Object.defineProperty(this, "pathname", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: {}
+        });
+        /**
+         * Search variables
+         *
+         * @example
+         *
+         * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+         * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+         */
+        Object.defineProperty(this, "search", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: {}
+        });
+        this.options = {
+            useOptimizedObservability: true,
+            ...options,
+        };
         __classPrivateFieldSet(this, _LiveXRoute_router, router, "f");
         makeAutoObservable(this, {
             toJSON: false,
+            options: false,
         });
     }
     get key() {
@@ -60,13 +147,10 @@ export class LiveXRoute {
         };
     }
     get pathnameMatch() {
-        const pathname = __classPrivateFieldGet(this, _LiveXRoute_router, "f").pathname;
-        if (pathname == null)
-            return;
         return (match(this.resource, {
             decode: decodeURI,
             encode: encodeURI,
-        })(pathname) || undefined);
+        })(__classPrivateFieldGet(this, _LiveXRoute_router, "f").pathname) || undefined);
     }
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -81,31 +165,6 @@ export class LiveXRoute {
      */
     get isActive() {
         return __classPrivateFieldGet(this, _LiveXRoute_router, "f").route?.key === this.key;
-    }
-    /**
-     * Pathname variables, as defined in the `resource` URL pattern.
-     *
-     * @example
-     *
-     * Given uri `/user/:id`
-     * Resolves { id: '123' }
-     */
-    get pathname() {
-        return this.pathnameMatch?.params ?? {};
-    }
-    /**
-     * Search variables
-     *
-     * @example
-     *
-     * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
-     * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
-     */
-    get search() {
-        return (qs.parse(__classPrivateFieldGet(this, _LiveXRoute_router, "f").search ?? '', {
-            ignoreQueryPrefix: true,
-            ...__classPrivateFieldGet(this, _LiveXRoute_router, "f").config.qs?.parse,
-        }) ?? {});
     }
     /**
      * The hash string
@@ -218,4 +277,20 @@ export class LiveXRoute {
         return input;
     }
 }
-_LiveXRoute_router = new WeakMap();
+_LiveXRoute_router = new WeakMap(), _LiveXRoute_searchReactor = new WeakMap(), _LiveXRoute_pathnameReactor = new WeakMap();
+/** Merges by using `microdiff` */
+function diffMerge(prev, next) {
+    const diff = microdiff(prev, next);
+    for (const event of diff) {
+        switch (event.type) {
+            case 'CREATE':
+            case 'CHANGE':
+                set(prev, event.path, event.value);
+                break;
+            case 'REMOVE':
+                unset(prev, event.path);
+                break;
+        }
+    }
+    return null;
+}

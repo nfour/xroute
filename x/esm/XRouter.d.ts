@@ -2,10 +2,22 @@ import * as qs from 'qs';
 import { RouteConfig } from './XRoute';
 import { LiveXRoute } from './LiveXRoute';
 import { HistorySubset, LocationPrimitive } from './HistoryObserver';
-export interface LocationShape {
+export interface LocationType {
     pathname: {};
     search: {};
     hash?: string;
+}
+export interface XRouterOptions {
+    /** @optional `qs` library option overrides */
+    qs?: {
+        parse?: qs.IParseOptions;
+        format?: qs.IStringifyOptions;
+    };
+    /**
+     * Whether to use `microdiff` to optimize `search` and `pathname` observability
+     * @default true
+     */
+    useOptimizedObservability?: boolean;
 }
 /**
  * Declarative type safe routing synced to the browser location.
@@ -29,6 +41,7 @@ export interface LocationShape {
  * ], createBrowserHistory(), {})
  */
 export declare class XRouter<CONFIGS extends RouteConfig[]> {
+    #private;
     /**
      * An array of route configurations. Order matters for finding the active route.
      */
@@ -42,13 +55,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     /**
      * Additional config options for various components.
      */
-    config: {
-        /** @optional `qs` library option overrides */
-        qs?: {
-            parse?: qs.IParseOptions;
-            format?: qs.IStringifyOptions;
-        };
-    };
+    options: XRouterOptions;
     /**
      * A map of routes `{ [route.key]: route }`
      *
@@ -96,13 +103,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     /**
      * Additional config options for various components.
      */
-    config?: {
-        /** @optional `qs` library option overrides */
-        qs?: {
-            parse?: qs.IParseOptions;
-            format?: qs.IStringifyOptions;
-        };
-    });
+    options?: XRouterOptions);
     /**
      * Current pathname string
      * @example
@@ -121,7 +122,6 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
      * '#my-hash'
      */
     hash: string;
-    private historyObserver;
     /** The currently active route. */
     get route(): undefined | this['ROUTE'];
     /** Converts a route to a string path. */
@@ -139,6 +139,8 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
     forward: HistorySubset['forward'];
     /** `history.block()` */
     block: HistorySubset['block'];
+    /** Clean up any reactions/listeners */
+    dispose: () => void;
     toJSON(): {
         pathname: string;
         search: string;

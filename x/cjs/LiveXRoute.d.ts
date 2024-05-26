@@ -1,8 +1,9 @@
 import { RouteConfig } from './XRoute';
-import { type XRouter } from './XRouter';
+import { type XRouter, type XRouterOptions } from './XRouter';
 type Partial2Deep<T, DEPTH = 1> = {
     [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>;
 };
+export type LiveXRouteOptions = Pick<XRouterOptions, 'useOptimizedObservability'>;
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -10,11 +11,14 @@ type Partial2Deep<T, DEPTH = 1> = {
 export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRouter<any> = XRouter<any>> {
     #private;
     private config;
+    options: LiveXRouteOptions;
     /** Deep partial config location */
     LOCATION_INPUT: Partial2Deep<CONFIG['location']>;
     /** Config location */
     LOCATION: CONFIG['location'];
-    constructor(config: CONFIG, router: ROUTER);
+    constructor(config: CONFIG, router: ROUTER, options?: LiveXRouteOptions);
+    /** Cleanup reactions */
+    dispose: () => void;
     get key(): CONFIG['key'];
     get resource(): CONFIG['resource'];
     /** Warning: Use this.pathname, this.search, this.hash for optimal observability performance */
@@ -38,7 +42,7 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      * Given uri `/user/:id`
      * Resolves { id: '123' }
      */
-    get pathname(): CONFIG['location']['pathname'];
+    pathname: CONFIG["location"]["pathname"];
     /**
      * Search variables
      *
@@ -47,7 +51,7 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
      * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
      */
-    get search(): CONFIG['location']['search'];
+    search: CONFIG["location"]["search"];
     /**
      * The hash string
      *
