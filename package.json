@@ -31,6 +31,7 @@
     "microdiff": "^1.4.0",
     "path-to-regexp": "^6.2.2",
     "qs": "^6.12.1",
+    "zod": "^3.23.8",
     "type-fest": "^4.18.2"
   },
   "devDependencies": {
@@ -48,7 +49,6 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "~5.4.5",
-    "vite": "^5.2.11",
-    "zod": "^3.23.8"
+    "vite": "^5.2.11"
   }
 }
