@@ -112,7 +112,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
       options: false,
     })
 
-    this.historyObserver.listen()
+    this.#historyObserver.listen()
 
     this.routes = Object.fromEntries(
       this.definition.map((config) => [
@@ -141,7 +141,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
    */
   hash = ''
 
-  private historyObserver = new HistoryObserver(
+  #historyObserver = new HistoryObserver(
     () => this.history,
     ({ location }) => this.setLocation(location),
   )
@@ -192,6 +192,15 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
   forward: HistorySubset['forward'] = () => this.history.forward()
   /** `history.block()` */
   block: HistorySubset['block'] = (...args) => this.history.block(...args)
+
+  /** Clean up any reactions/listeners */
+  dispose = () => {
+    this.#historyObserver.dispose?.()
+
+    for (const route of Object.values<this['ROUTE']>(this.routes)) {
+      route.dispose()
+    }
+  }
 
   toJSON() {
     return {

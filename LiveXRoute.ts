@@ -1,9 +1,14 @@
-import { makeAutoObservable, reaction, type IReactionDisposer } from 'mobx'
+import {
+  makeAutoObservable,
+  reaction,
+  type IReactionDisposer,
+  type IReactionOptions,
+} from 'mobx'
 import { RouteConfig } from './XRoute'
 import { type XRouter, type XRouterOptions } from './XRouter'
 import { match } from 'path-to-regexp'
 import * as qs from 'qs'
-import { set } from 'lodash'
+import { isEqual, set, unset } from 'lodash'
 import microdiff from 'microdiff'
 
 type Partial2Deep<T, DEPTH = 1> = {
@@ -14,6 +19,26 @@ export type LiveXRouteOptions = Pick<
   XRouterOptions,
   'useOptimizedObservability'
 >
+
+class Reactor<T> {
+  dispose = undefined as undefined | IReactionDisposer
+
+  constructor(
+    fn: () => T,
+    effect: (arg: T) => void,
+    options: IReactionOptions<any> = {},
+  ) {
+    this.dispose?.()
+
+    this.dispose = reaction(fn, effect, {
+      fireImmediately: true,
+      equals: isEqual,
+      ...options,
+    })
+
+    return this
+  }
+}
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -45,14 +70,42 @@ export class LiveXRoute<
       toJSON: false,
       options: false,
     })
-
-    this.#reactToRouter()
   }
 
-  #reactionDisposer = undefined as undefined | IReactionDisposer
+  #searchReactor = new Reactor(
+    () =>
+      qs.parse(this.#router.search, {
+        ignoreQueryPrefix: true,
+        ...this.#router.options.qs?.parse,
+      }),
+    (search) => {
+      if (!this.options.useOptimizedObservability) {
+        this.search = search
 
+        return
+      }
+
+      diffMerge(this.search, search)
+    },
+  )
+
+  #pathnameReactor = new Reactor(
+    () => this.pathnameMatch?.params ?? {},
+    (pathname) => {
+      if (!this.options.useOptimizedObservability) {
+        this.pathname = pathname
+
+        return
+      }
+
+      diffMerge(this.pathname, pathname)
+    },
+  )
+
+  /** Cleanup reactions */
   dispose = () => {
-    this.#reactionDisposer?.()
+    this.#searchReactor.dispose?.()
+    this.#pathnameReactor.dispose?.()
   }
 
   get key(): CONFIG['key'] {
@@ -73,15 +126,11 @@ export class LiveXRoute<
   }
 
   get pathnameMatch() {
-    const pathname = this.#router.pathname
-
-    if (pathname == null) return
-
     return (
       match(this.resource, {
         decode: decodeURI,
         encode: encodeURI,
-      })(pathname) || undefined
+      })(this.#router.pathname) || undefined
     )
   }
 
@@ -109,9 +158,7 @@ export class LiveXRoute<
    * Given uri `/user/:id`
    * Resolves { id: '123' }
    */
-  get pathname(): CONFIG['location']['pathname'] {
-    return this.pathnameMatch?.params ?? {}
-  }
+  pathname = {} as CONFIG['location']['pathname']
 
   /**
    * Search variables
@@ -122,36 +169,6 @@ export class LiveXRoute<
    * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
    */
   search = {} as CONFIG['location']['search']
-
-  #reactToRouter = () => {
-    return (this.#reactionDisposer = reaction(
-      () =>
-        qs.parse(this.#router.search, {
-          ignoreQueryPrefix: true,
-          ...this.#router.options.qs?.parse,
-        }),
-      (search) => {
-        if (!this.options.useOptimizedObservability) {
-          this.search = search
-
-          return
-        }
-
-        const diff = microdiff(this.search, search)
-
-        for (const event of diff) {
-          switch (event.type) {
-            case 'CREATE':
-            case 'CHANGE':
-              return set(this.search, event.path, event.value)
-            case 'REMOVE':
-              return set(this.search, event.path, undefined)
-          }
-        }
-      },
-      { fireImmediately: true },
-    ))
-  }
 
   /**
    * The hash string
@@ -307,16 +324,21 @@ export class LiveXRoute<
   }
 }
 
-function diffUpdate(prev: object, next: object) {
+/** Merges by using `microdiff` */
+function diffMerge(prev: object, next: object) {
   const diff = microdiff(prev, next)
 
   for (const event of diff) {
     switch (event.type) {
       case 'CREATE':
       case 'CHANGE':
-        return set(prev, event.path, event.value)
+        set(prev, event.path, event.value)
+        break
       case 'REMOVE':
-        return set(prev, event.path, undefined)
+        unset(prev, event.path)
+        break
     }
   }
+
+  return null
 }
