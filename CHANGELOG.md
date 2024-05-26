@@ -1,5 +1,16 @@
 # Changelog
 
+## 13 -> 15.0.0
+
+- Added feature: `useOptimizedObservability` option to router
+  - By default is true
+  - Optimized `search` and `pathname` on routes to only update deep properties on change
+    - This should improve render performance!
+- Added feature: `XRoute('someRoute').Schema({ ... })` to define a schema for a route
+  - This accepts zod schemas to define the `pathname` and `search` and `hash`
+  - For the time being, no schema validation is run, it is only for types
+    - However, one can access the schema to validate with it manually eg. `route.schema.schema.pathname.parse(route.pathname)`
+
 ## 12.0.0
 
 - Write better inline JSDOC comments for methods
