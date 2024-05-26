@@ -15,6 +15,19 @@ export interface LocationType {
   hash?: string
 }
 
+export interface XRouterOptions {
+  /** @optional `qs` library option overrides */
+  qs?: {
+    parse?: qs.IParseOptions
+    format?: qs.IStringifyOptions
+  }
+  /**
+   * Whether to use `microdiff` to optimize `search` and `pathname` observability
+   * @default true
+   */
+  useOptimizedObservability?: boolean
+}
+
 /**
  * Declarative type safe routing synced to the browser location.
  *
@@ -86,22 +99,17 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
     /**
      * Additional config options for various components.
      */
-    public config: {
-      /** @optional `qs` library option overrides */
-      qs?: {
-        parse?: qs.IParseOptions
-        format?: qs.IStringifyOptions
-      }
-    } = {},
+    public options: XRouterOptions = {},
   ) {
     this.definition = definition
     this.history = history
-    this.config = config
+    this.options = options
 
     makeAutoObservable(this, {
       history: false,
       toJSON: false,
       routes: false,
+      options: false,
     })
 
     this.historyObserver.listen()
@@ -109,7 +117,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
     this.routes = Object.fromEntries(
       this.definition.map((config) => [
         config.key,
-        new LiveXRoute(config, this),
+        new LiveXRoute(config, this, this.options),
       ]),
     ) as any
   }
@@ -227,7 +235,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
               addQueryPrefix: false,
               encodeValuesOnly: true,
               format: 'RFC3986',
-              ...this.config.qs?.format,
+              ...this.options.qs?.format,
             })
 
       const hash = location?.hash ? `#${location.hash}`.replace(/^#+/, '#') : ''

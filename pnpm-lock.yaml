@@ -7,6 +7,9 @@ dependencies:
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
+  microdiff:
+    specifier: ^1.4.0
+    version: 1.4.0
   path-to-regexp:
     specifier: ^6.2.2
     version: 6.2.2
@@ -65,6 +68,9 @@ devDependencies:
   vite:
     specifier: ^5.2.11
     version: 5.2.11(@types/node@18.11.17)
+  zod:
+    specifier: ^3.23.8
+    version: 3.23.8
 
 packages:
 
@@ -3992,6 +3998,10 @@ packages:
     engines: {node: '>= 8'}
     dev: true
 
+  /microdiff@1.4.0:
+    resolution: {integrity: sha512-OBKBOa1VBznvLPb/3ljeJaENVe0fO0lnWl77lR4vhPlQD71UpjEoRV5P0KdQkcjbFlBu1Oy2mEUBMU3wxcBAGg==}
+    dev: false
+
   /micromark-core-commonmark@2.0.1:
     resolution: {integrity: sha512-CUQyKr1e///ZODyD1U3xit6zXwy1a8q2a1S1HKtIlmgvurrEpaw/Y9y6KSIbF8P59cn/NjzHyO+Q2fAyYLQrAA==}
     dependencies:
@@ -5767,6 +5777,10 @@ packages:
   /yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+    dev: true
+
+  /zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
     dev: true
 
   /zwitch@2.0.4:

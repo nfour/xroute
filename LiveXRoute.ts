@@ -1,13 +1,19 @@
-import { makeAutoObservable } from 'mobx'
+import { makeAutoObservable, reaction, type IReactionDisposer } from 'mobx'
 import { RouteConfig } from './XRoute'
-import { type XRouter } from './XRouter'
+import { type XRouter, type XRouterOptions } from './XRouter'
 import { match } from 'path-to-regexp'
 import * as qs from 'qs'
+import { set } from 'lodash'
+import microdiff from 'microdiff'
 
 type Partial2Deep<T, DEPTH = 1> = {
   [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>
 }
 
+export type LiveXRouteOptions = Pick<
+  XRouterOptions,
+  'useOptimizedObservability'
+>
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -23,12 +29,30 @@ export class LiveXRoute<
   /** Config location */
   public LOCATION!: CONFIG['location']
 
-  constructor(private config: CONFIG, router: ROUTER) {
+  constructor(
+    private config: CONFIG,
+    router: ROUTER,
+    public options = {} as LiveXRouteOptions,
+  ) {
+    this.options = {
+      useOptimizedObservability: true,
+      ...options,
+    }
+
     this.#router = router
 
     makeAutoObservable(this, {
       toJSON: false,
+      options: false,
     })
+
+    this.#reactToRouter()
+  }
+
+  #reactionDisposer = undefined as undefined | IReactionDisposer
+
+  dispose = () => {
+    this.#reactionDisposer?.()
   }
 
   get key(): CONFIG['key'] {
@@ -97,13 +121,36 @@ export class LiveXRoute<
    * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
    * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
    */
-  get search(): CONFIG['location']['search'] {
-    return (
-      qs.parse(this.#router.search ?? '', {
-        ignoreQueryPrefix: true,
-        ...this.#router.config.qs?.parse,
-      }) ?? {}
-    )
+  search = {} as CONFIG['location']['search']
+
+  #reactToRouter = () => {
+    return (this.#reactionDisposer = reaction(
+      () =>
+        qs.parse(this.#router.search, {
+          ignoreQueryPrefix: true,
+          ...this.#router.options.qs?.parse,
+        }),
+      (search) => {
+        if (!this.options.useOptimizedObservability) {
+          this.search = search
+
+          return
+        }
+
+        const diff = microdiff(this.search, search)
+
+        for (const event of diff) {
+          switch (event.type) {
+            case 'CREATE':
+            case 'CHANGE':
+              return set(this.search, event.path, event.value)
+            case 'REMOVE':
+              return set(this.search, event.path, undefined)
+          }
+        }
+      },
+      { fireImmediately: true },
+    ))
   }
 
   /**
@@ -257,5 +304,19 @@ export class LiveXRoute<
     if (typeof input === 'function') return input(this)
 
     return input
+  }
+}
+
+function diffUpdate(prev: object, next: object) {
+  const diff = microdiff(prev, next)
+
+  for (const event of diff) {
+    switch (event.type) {
+      case 'CREATE':
+      case 'CHANGE':
+        return set(prev, event.path, event.value)
+      case 'REMOVE':
+        return set(prev, event.path, undefined)
+    }
   }
 }
