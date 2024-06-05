@@ -1,16 +1,4 @@
 "use strict";
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _LiveXRoute_router, _LiveXRoute_searchReactor, _LiveXRoute_pathnameReactor;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LiveXRoute = void 0;
 const mobx_1 = require("mobx");
@@ -47,13 +35,18 @@ class LiveXRoute {
             writable: true,
             value: config
         });
+        Object.defineProperty(this, "router", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: router
+        });
         Object.defineProperty(this, "options", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: options
         });
-        _LiveXRoute_router.set(this, void 0);
         /** Deep partial config location */
         Object.defineProperty(this, "LOCATION_INPUT", {
             enumerable: true,
@@ -68,33 +61,41 @@ class LiveXRoute {
             writable: true,
             value: void 0
         });
-        _LiveXRoute_searchReactor.set(this, new Reactor(() => qs.parse(__classPrivateFieldGet(this, _LiveXRoute_router, "f").search, {
-            ignoreQueryPrefix: true,
-            ...__classPrivateFieldGet(this, _LiveXRoute_router, "f").options.qs?.parse,
-        }), (search) => {
-            if (!this.options.useOptimizedObservability) {
-                this.search = search;
-                return;
-            }
-            diffMerge(this.search, search);
-        }));
-        _LiveXRoute_pathnameReactor.set(this, new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
-            if (!this.options.useOptimizedObservability) {
-                this.pathname = pathname;
-                return;
-            }
-            diffMerge(this.pathname, pathname);
-        })
-        /** Cleanup reactions */
-        );
+        Object.defineProperty(this, "searchReactor", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new Reactor(() => qs.parse(this.router.search, {
+                ignoreQueryPrefix: true,
+                ...this.router.options.qs?.parse,
+            }), (search) => {
+                if (!this.options.useOptimizedObservability) {
+                    this.search = search;
+                    return;
+                }
+                diffMerge(this.search, search);
+            })
+        });
+        Object.defineProperty(this, "pathnameReactor", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
+                if (!this.options.useOptimizedObservability) {
+                    this.pathname = pathname;
+                    return;
+                }
+                diffMerge(this.pathname, pathname);
+            })
+        });
         /** Cleanup reactions */
         Object.defineProperty(this, "dispose", {
             enumerable: true,
             configurable: true,
             writable: true,
             value: () => {
-                __classPrivateFieldGet(this, _LiveXRoute_searchReactor, "f").dispose?.();
-                __classPrivateFieldGet(this, _LiveXRoute_pathnameReactor, "f").dispose?.();
+                this.searchReactor.dispose?.();
+                this.pathnameReactor.dispose?.();
             }
         });
         /**
@@ -129,7 +130,6 @@ class LiveXRoute {
             useOptimizedObservability: true,
             ...options,
         };
-        __classPrivateFieldSet(this, _LiveXRoute_router, router, "f");
         (0, mobx_1.makeAutoObservable)(this, {
             toJSON: false,
             options: false,
@@ -153,7 +153,7 @@ class LiveXRoute {
         return ((0, path_to_regexp_1.match)(this.resource, {
             decode: decodeURI,
             encode: encodeURI,
-        })(__classPrivateFieldGet(this, _LiveXRoute_router, "f").pathname) || undefined);
+        })(this.router.pathname) || undefined);
     }
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -167,7 +167,7 @@ class LiveXRoute {
      * and is also the route which is matched **first** in order of definition in the router.
      */
     get isActive() {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").route?.key === this.key;
+        return this.router.route?.key === this.key;
     }
     /**
      * The hash string
@@ -178,7 +178,7 @@ class LiveXRoute {
      * Resolves 'foooo'
      */
     get hash() {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").hash.split('#')[1];
+        return this.router.hash.split('#')[1];
     }
     /**
      * Pushes a URI update to the history stack.
@@ -188,7 +188,7 @@ class LiveXRoute {
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
     push(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").push(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
+        return this.router.push(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
     /**
      * Pushes a URI update to the history stack.
@@ -197,7 +197,7 @@ class LiveXRoute {
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
     pushExact(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").push(this, this.handlePolymorphicInput(input));
+        return this.router.push(this, this.handlePolymorphicInput(input));
     }
     /**
      * Replaces the current URI in the history stack.
@@ -207,7 +207,7 @@ class LiveXRoute {
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
     replace(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").replace(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
+        return this.router.replace(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
     /**
      * Replaces the current URI in the history stack.
@@ -216,7 +216,7 @@ class LiveXRoute {
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
     replaceExact(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").replace(this, this.handlePolymorphicInput(input));
+        return this.router.replace(this, this.handlePolymorphicInput(input));
     }
     /**
      * Converts the route to a URI string.
@@ -226,7 +226,7 @@ class LiveXRoute {
      * Note: Due to the merge, calling this triggers observation the currently active route's pathname, search, hash
      */
     toUri(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").toUri(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
+        return this.router.toUri(this, this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)));
     }
     /**
      * Converts the route to a URI string.
@@ -235,7 +235,7 @@ class LiveXRoute {
      * Note: This does not implicitly trigger observation of the currently active route's pathname, search, hash
      */
     toUriExact(input) {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").toUri(this, this.handlePolymorphicInput(input));
+        return this.router.toUri(this, this.handlePolymorphicInput(input));
     }
     /** @deprecated use toUri() */
     get uri() {
@@ -272,7 +272,7 @@ class LiveXRoute {
         };
     }
     get activeRoute() {
-        return __classPrivateFieldGet(this, _LiveXRoute_router, "f").route;
+        return this.router.route;
     }
     handlePolymorphicInput(input) {
         if (typeof input === 'function')
@@ -281,7 +281,6 @@ class LiveXRoute {
     }
 }
 exports.LiveXRoute = LiveXRoute;
-_LiveXRoute_router = new WeakMap(), _LiveXRoute_searchReactor = new WeakMap(), _LiveXRoute_pathnameReactor = new WeakMap();
 /** Merges by using `microdiff` */
 function diffMerge(prev, next) {
     const diff = (0, microdiff_1.default)(prev, next);

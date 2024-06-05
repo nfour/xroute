@@ -48,7 +48,6 @@ export class LiveXRoute<
   CONFIG extends RouteConfig,
   ROUTER extends XRouter<any> = XRouter<any>,
 > {
-  #router: ROUTER
   /** Deep partial config location */
   public LOCATION_INPUT!: Partial2Deep<CONFIG['location']>
   /** Config location */
@@ -56,7 +55,7 @@ export class LiveXRoute<
 
   constructor(
     private config: CONFIG,
-    router: ROUTER,
+    private router: ROUTER,
     public options = {} as LiveXRouteOptions,
   ) {
     this.options = {
@@ -64,19 +63,17 @@ export class LiveXRoute<
       ...options,
     }
 
-    this.#router = router
-
     makeAutoObservable(this, {
       toJSON: false,
       options: false,
     })
   }
 
-  #searchReactor = new Reactor(
+  private searchReactor = new Reactor(
     () =>
-      qs.parse(this.#router.search, {
+      qs.parse(this.router.search, {
         ignoreQueryPrefix: true,
-        ...this.#router.options.qs?.parse,
+        ...this.router.options.qs?.parse,
       }),
     (search) => {
       if (!this.options.useOptimizedObservability) {
@@ -89,7 +86,7 @@ export class LiveXRoute<
     },
   )
 
-  #pathnameReactor = new Reactor(
+  private pathnameReactor = new Reactor(
     () => this.pathnameMatch?.params ?? {},
     (pathname) => {
       if (!this.options.useOptimizedObservability) {
@@ -104,8 +101,8 @@ export class LiveXRoute<
 
   /** Cleanup reactions */
   dispose = () => {
-    this.#searchReactor.dispose?.()
-    this.#pathnameReactor.dispose?.()
+    this.searchReactor.dispose?.()
+    this.pathnameReactor.dispose?.()
   }
 
   get key(): CONFIG['key'] {
@@ -130,7 +127,7 @@ export class LiveXRoute<
       match(this.resource, {
         decode: decodeURI,
         encode: encodeURI,
-      })(this.#router.pathname) || undefined
+      })(this.router.pathname) || undefined
     )
   }
 
@@ -147,7 +144,7 @@ export class LiveXRoute<
    * and is also the route which is matched **first** in order of definition in the router.
    */
   get isActive() {
-    return this.#router.route?.key === this.key
+    return this.router.route?.key === this.key
   }
 
   /**
@@ -179,7 +176,7 @@ export class LiveXRoute<
    * Resolves 'foooo'
    */
   get hash(): CONFIG['location']['hash'] {
-    return this.#router.hash.split('#')[1]
+    return this.router.hash.split('#')[1]
   }
 
   /**
@@ -194,7 +191,7 @@ export class LiveXRoute<
       | ((location: this['LOCATION']) => this['LOCATION_INPUT'])
       | this['LOCATION_INPUT'],
   ) {
-    return this.#router.push(
+    return this.router.push(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
     )
@@ -211,7 +208,7 @@ export class LiveXRoute<
       | ((location: this['LOCATION']) => this['LOCATION'])
       | this['LOCATION'],
   ) {
-    return this.#router.push(this, this.handlePolymorphicInput(input))
+    return this.router.push(this, this.handlePolymorphicInput(input))
   }
 
   /**
@@ -226,7 +223,7 @@ export class LiveXRoute<
       | ((route: this['LOCATION']) => this['LOCATION_INPUT'])
       | this['LOCATION_INPUT'],
   ) {
-    return this.#router.replace(
+    return this.router.replace(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
     )
@@ -241,7 +238,7 @@ export class LiveXRoute<
   replaceExact(
     input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION'],
   ) {
-    return this.#router.replace(this, this.handlePolymorphicInput(input))
+    return this.router.replace(this, this.handlePolymorphicInput(input))
   }
 
   /**
@@ -256,7 +253,7 @@ export class LiveXRoute<
       | ((route: this['LOCATION']) => this['LOCATION_INPUT'])
       | this['LOCATION_INPUT'],
   ): string {
-    return this.#router.toUri(
+    return this.router.toUri(
       this,
       this.mergeLocationWithActiveRoute(this.handlePolymorphicInput(input)),
     )
@@ -271,7 +268,7 @@ export class LiveXRoute<
   toUriExact(
     input: ((route: this['LOCATION']) => this['LOCATION']) | this['LOCATION'],
   ) {
-    return this.#router.toUri(this, this.handlePolymorphicInput(input))
+    return this.router.toUri(this, this.handlePolymorphicInput(input))
   }
 
   /** @deprecated use toUri() */
@@ -312,7 +309,7 @@ export class LiveXRoute<
   }
 
   protected get activeRoute() {
-    return this.#router.route
+    return this.router.route
   }
 
   protected handlePolymorphicInput<P extends object>(

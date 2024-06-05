@@ -9,14 +9,16 @@ export type LiveXRouteOptions = Pick<XRouterOptions, 'useOptimizedObservability'
  * @example new XRouter(...).routes.myFooRoute
  */
 export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRouter<any> = XRouter<any>> {
-    #private;
     private config;
+    private router;
     options: LiveXRouteOptions;
     /** Deep partial config location */
     LOCATION_INPUT: Partial2Deep<CONFIG['location']>;
     /** Config location */
     LOCATION: CONFIG['location'];
     constructor(config: CONFIG, router: ROUTER, options?: LiveXRouteOptions);
+    private searchReactor;
+    private pathnameReactor;
     /** Cleanup reactions */
     dispose: () => void;
     get key(): CONFIG['key'];
