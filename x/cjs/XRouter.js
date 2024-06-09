@@ -1,10 +1,4 @@
 "use strict";
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _XRouter_historyObserver;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.XRouter = void 0;
 const mobx_1 = require("mobx");
@@ -151,9 +145,12 @@ class XRouter {
             writable: true,
             value: ''
         });
-        _XRouter_historyObserver.set(this, new HistoryObserver_1.HistoryObserver(() => this.history, ({ location }) => this.setLocation(location))
-        /** The currently active route. */
-        );
+        Object.defineProperty(this, "historyObserver", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: new HistoryObserver_1.HistoryObserver(() => this.history, ({ location }) => this.setLocation(location))
+        });
         /** `history.go()` */
         Object.defineProperty(this, "go", {
             enumerable: true,
@@ -188,7 +185,7 @@ class XRouter {
             configurable: true,
             writable: true,
             value: () => {
-                __classPrivateFieldGet(this, _XRouter_historyObserver, "f").dispose?.();
+                this.historyObserver.dispose?.();
                 for (const route of Object.values(this.routes)) {
                     route.dispose();
                 }
@@ -203,11 +200,11 @@ class XRouter {
             routes: false,
             options: false,
         });
-        __classPrivateFieldGet(this, _XRouter_historyObserver, "f").listen();
         this.routes = Object.fromEntries(this.definition.map((config) => [
             config.key,
             new LiveXRoute_1.LiveXRoute(config, this, this.options),
         ]));
+        this.historyObserver.listen();
     }
     /** The currently active route. */
     get route() {
@@ -288,4 +285,3 @@ class XRouter {
     }
 }
 exports.XRouter = XRouter;
-_XRouter_historyObserver = new WeakMap();

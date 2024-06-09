@@ -41,7 +41,6 @@ export interface XRouterOptions {
  * ], createBrowserHistory(), {})
  */
 export declare class XRouter<CONFIGS extends RouteConfig[]> {
-    #private;
     /**
      * An array of route configurations. Order matters for finding the active route.
      */
@@ -122,6 +121,7 @@ export declare class XRouter<CONFIGS extends RouteConfig[]> {
      * '#my-hash'
      */
     hash: string;
+    private historyObserver;
     /** The currently active route. */
     get route(): undefined | this['ROUTE'];
     /** Converts a route to a string path. */

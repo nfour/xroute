@@ -6,21 +6,36 @@ const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
 const lodash_1 = require("lodash");
 const microdiff_1 = require("microdiff");
-class Reactor {
-    constructor(fn, effect, options = {}) {
+class Reaction {
+    constructor(expression, effect, options = {}) {
+        Object.defineProperty(this, "expression", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: expression
+        });
+        Object.defineProperty(this, "effect", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: effect
+        });
         Object.defineProperty(this, "dispose", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: undefined
+            value: void 0
         });
-        this.dispose?.();
-        this.dispose = (0, mobx_1.reaction)(fn, effect, {
-            fireImmediately: true,
+        Object.defineProperty(this, "trigger", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: () => this.effect(this.expression())
+        });
+        this.dispose = (0, mobx_1.reaction)(expression, effect, {
             equals: lodash_1.isEqual,
             ...options,
         });
-        return this;
     }
 }
 /**
@@ -61,26 +76,54 @@ class LiveXRoute {
             writable: true,
             value: void 0
         });
+        /**
+         * Pathname variables, as defined in the `resource` URL pattern.
+         *
+         * @example
+         *
+         * Given uri `/user/:id`
+         * Resolves { id: '123' }
+         */
+        Object.defineProperty(this, "pathname", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
+        /**
+         * Search variables
+         *
+         * @example
+         *
+         * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+         * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+         */
+        Object.defineProperty(this, "search", {
+            enumerable: true,
+            configurable: true,
+            writable: true,
+            value: void 0
+        });
         Object.defineProperty(this, "searchReactor", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reactor(() => qs.parse(this.router.search, {
+            value: new Reaction(() => qs.parse(this.router.search, {
                 ignoreQueryPrefix: true,
                 ...this.router.options.qs?.parse,
             }), (search) => {
-                if (!this.options.useOptimizedObservability) {
-                    this.search = search;
+                if (this.options.useOptimizedObservability) {
+                    diffMerge(this.search, search);
                     return;
                 }
-                diffMerge(this.search, search);
+                this.search = search;
             })
         });
         Object.defineProperty(this, "pathnameReactor", {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
+            value: new Reaction(() => this.pathnameMatch?.params ?? {}, (pathname) => {
                 if (!this.options.useOptimizedObservability) {
                     this.pathname = pathname;
                     return;
@@ -98,42 +141,27 @@ class LiveXRoute {
                 this.pathnameReactor.dispose?.();
             }
         });
-        /**
-         * Pathname variables, as defined in the `resource` URL pattern.
-         *
-         * @example
-         *
-         * Given uri `/user/:id`
-         * Resolves { id: '123' }
-         */
-        Object.defineProperty(this, "pathname", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: {}
-        });
-        /**
-         * Search variables
-         *
-         * @example
-         *
-         * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
-         * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
-         */
-        Object.defineProperty(this, "search", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: {}
-        });
         this.options = {
             useOptimizedObservability: true,
             ...options,
         };
+        this.search = this.searchReactor.expression();
+        this.pathname = this.pathnameReactor.expression();
         (0, mobx_1.makeAutoObservable)(this, {
             toJSON: false,
             options: false,
         });
+    }
+    /**
+     * The hash string
+     *
+     * @example
+     *
+     * Given uri `/some/url/?aaaa=1#foooo`
+     * Resolves 'foooo'
+     */
+    get hash() {
+        return this.router.hash.split('#')[1];
     }
     get key() {
         return this.config.key;
@@ -168,17 +196,6 @@ class LiveXRoute {
      */
     get isActive() {
         return this.router.route?.key === this.key;
-    }
-    /**
-     * The hash string
-     *
-     * @example
-     *
-     * Given uri `/some/url/?aaaa=1#foooo`
-     * Resolves 'foooo'
-     */
-    get hash() {
-        return this.router.hash.split('#')[1];
     }
     /**
      * Pushes a URI update to the history stack.

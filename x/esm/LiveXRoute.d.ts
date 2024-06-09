@@ -17,10 +17,35 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
     /** Config location */
     LOCATION: CONFIG['location'];
     constructor(config: CONFIG, router: ROUTER, options?: LiveXRouteOptions);
+    /**
+     * Pathname variables, as defined in the `resource` URL pattern.
+     *
+     * @example
+     *
+     * Given uri `/user/:id`
+     * Resolves { id: '123' }
+     */
+    pathname: CONFIG['location']['pathname'];
+    /**
+     * Search variables
+     *
+     * @example
+     *
+     * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+     * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+     */
+    search: CONFIG['location']['search'];
+    /**
+     * The hash string
+     *
+     * @example
+     *
+     * Given uri `/some/url/?aaaa=1#foooo`
+     * Resolves 'foooo'
+     */
+    get hash(): CONFIG['location']['hash'];
     private searchReactor;
     private pathnameReactor;
-    /** Cleanup reactions */
-    dispose: () => void;
     get key(): CONFIG['key'];
     get resource(): CONFIG['resource'];
     /** Warning: Use this.pathname, this.search, this.hash for optimal observability performance */
@@ -36,33 +61,6 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
      * and is also the route which is matched **first** in order of definition in the router.
      */
     get isActive(): boolean;
-    /**
-     * Pathname variables, as defined in the `resource` URL pattern.
-     *
-     * @example
-     *
-     * Given uri `/user/:id`
-     * Resolves { id: '123' }
-     */
-    pathname: CONFIG["location"]["pathname"];
-    /**
-     * Search variables
-     *
-     * @example
-     *
-     * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
-     * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
-     */
-    search: CONFIG["location"]["search"];
-    /**
-     * The hash string
-     *
-     * @example
-     *
-     * Given uri `/some/url/?aaaa=1#foooo`
-     * Resolves 'foooo'
-     */
-    get hash(): CONFIG['location']['hash'];
     /**
      * Pushes a URI update to the history stack.
      * Input can be a subset of the route's location as it
@@ -119,6 +117,8 @@ export declare class LiveXRoute<CONFIG extends RouteConfig, ROUTER extends XRout
         isActive: boolean;
         isMatching: boolean;
     };
+    /** Cleanup reactions */
+    dispose: () => void;
     protected mergeLocationWithActiveRoute(location?: this['LOCATION_INPUT']): {
         pathname: any;
         search: any;

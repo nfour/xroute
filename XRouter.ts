@@ -112,14 +112,14 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
       options: false,
     })
 
-    this.#historyObserver.listen()
-
     this.routes = Object.fromEntries(
       this.definition.map((config) => [
         config.key,
         new LiveXRoute(config, this, this.options),
       ]),
     ) as any
+
+    this.historyObserver.listen()
   }
 
   /**
@@ -141,7 +141,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
    */
   hash = ''
 
-  #historyObserver = new HistoryObserver(
+  private historyObserver = new HistoryObserver(
     () => this.history,
     ({ location }) => this.setLocation(location),
   )
@@ -195,7 +195,7 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
 
   /** Clean up any reactions/listeners */
   dispose = () => {
-    this.#historyObserver.dispose?.()
+    this.historyObserver.dispose?.()
 
     for (const route of Object.values<this['ROUTE']>(this.routes)) {
       route.dispose()

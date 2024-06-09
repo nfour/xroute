@@ -20,24 +20,21 @@ export type LiveXRouteOptions = Pick<
   'useOptimizedObservability'
 >
 
-class Reactor<T> {
-  dispose = undefined as undefined | IReactionDisposer
+class Reaction<T> {
+  dispose: IReactionDisposer
 
   constructor(
-    fn: () => T,
-    effect: (arg: T) => void,
+    public expression: () => T,
+    public effect: (arg: T) => void,
     options: IReactionOptions<any> = {},
   ) {
-    this.dispose?.()
-
-    this.dispose = reaction(fn, effect, {
-      fireImmediately: true,
+    this.dispose = reaction(expression, effect, {
       equals: isEqual,
       ...options,
     })
-
-    return this
   }
+
+  trigger = () => this.effect(this.expression())
 }
 /**
  * A "live" route, typically found at:
@@ -63,30 +60,65 @@ export class LiveXRoute<
       ...options,
     }
 
+    this.search = this.searchReactor.expression()
+    this.pathname = this.pathnameReactor.expression()
+
     makeAutoObservable(this, {
       toJSON: false,
       options: false,
     })
   }
 
-  private searchReactor = new Reactor(
+  /**
+   * Pathname variables, as defined in the `resource` URL pattern.
+   *
+   * @example
+   *
+   * Given uri `/user/:id`
+   * Resolves { id: '123' }
+   */
+  pathname: CONFIG['location']['pathname']
+
+  /**
+   * Search variables
+   *
+   * @example
+   *
+   * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
+   * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
+   */
+  search: CONFIG['location']['search']
+
+  /**
+   * The hash string
+   *
+   * @example
+   *
+   * Given uri `/some/url/?aaaa=1#foooo`
+   * Resolves 'foooo'
+   */
+  get hash(): CONFIG['location']['hash'] {
+    return this.router.hash.split('#')[1]
+  }
+
+  private searchReactor = new Reaction(
     () =>
       qs.parse(this.router.search, {
         ignoreQueryPrefix: true,
         ...this.router.options.qs?.parse,
       }),
     (search) => {
-      if (!this.options.useOptimizedObservability) {
-        this.search = search
+      if (this.options.useOptimizedObservability) {
+        diffMerge(this.search, search)
 
         return
       }
 
-      diffMerge(this.search, search)
+      this.search = search
     },
   )
 
-  private pathnameReactor = new Reactor(
+  private pathnameReactor = new Reaction(
     () => this.pathnameMatch?.params ?? {},
     (pathname) => {
       if (!this.options.useOptimizedObservability) {
@@ -98,12 +130,6 @@ export class LiveXRoute<
       diffMerge(this.pathname, pathname)
     },
   )
-
-  /** Cleanup reactions */
-  dispose = () => {
-    this.searchReactor.dispose?.()
-    this.pathnameReactor.dispose?.()
-  }
 
   get key(): CONFIG['key'] {
     return this.config.key
@@ -145,38 +171,6 @@ export class LiveXRoute<
    */
   get isActive() {
     return this.router.route?.key === this.key
-  }
-
-  /**
-   * Pathname variables, as defined in the `resource` URL pattern.
-   *
-   * @example
-   *
-   * Given uri `/user/:id`
-   * Resolves { id: '123' }
-   */
-  pathname = {} as CONFIG['location']['pathname']
-
-  /**
-   * Search variables
-   *
-   * @example
-   *
-   * Given uri `/myApp/?foo=1&bar=2&baz[a]=2`
-   * Resolves { foo: '1', bar: '2', baz: { a: '2' } }
-   */
-  search = {} as CONFIG['location']['search']
-
-  /**
-   * The hash string
-   *
-   * @example
-   *
-   * Given uri `/some/url/?aaaa=1#foooo`
-   * Resolves 'foooo'
-   */
-  get hash(): CONFIG['location']['hash'] {
-    return this.router.hash.split('#')[1]
   }
 
   /**
@@ -290,6 +284,12 @@ export class LiveXRoute<
       isActive: this.isActive,
       isMatching: this.isMatching,
     }
+  }
+
+  /** Cleanup reactions */
+  dispose = () => {
+    this.searchReactor.dispose?.()
+    this.pathnameReactor.dispose?.()
   }
 
   protected mergeLocationWithActiveRoute(location?: this['LOCATION_INPUT']) {
