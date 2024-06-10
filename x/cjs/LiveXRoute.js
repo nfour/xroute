@@ -6,38 +6,7 @@ const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
 const lodash_1 = require("lodash");
 const microdiff_1 = require("microdiff");
-class Reaction {
-    constructor(expression, effect, options = {}) {
-        Object.defineProperty(this, "expression", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: expression
-        });
-        Object.defineProperty(this, "effect", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: effect
-        });
-        Object.defineProperty(this, "dispose", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "trigger", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: () => this.effect(this.expression())
-        });
-        this.dispose = (0, mobx_1.reaction)(expression, effect, {
-            equals: lodash_1.isEqual,
-            ...options,
-        });
-    }
-}
+const Reactor_1 = require("./Reactor");
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -108,7 +77,7 @@ class LiveXRoute {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reaction(() => qs.parse(this.router.search, {
+            value: new Reactor_1.Reactor(() => qs.parse(this.router.search, {
                 ignoreQueryPrefix: true,
                 ...this.router.options.qs?.parse,
             }), (search) => {
@@ -123,7 +92,7 @@ class LiveXRoute {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reaction(() => this.pathnameMatch?.params ?? {}, (pathname) => {
+            value: new Reactor_1.Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
                 if (!this.options.useOptimizedObservability) {
                     this.pathname = pathname;
                     return;
@@ -151,6 +120,8 @@ class LiveXRoute {
             toJSON: false,
             options: false,
         });
+        this.searchReactor.react().fire();
+        this.pathnameReactor.react().fire();
     }
     /**
      * The hash string

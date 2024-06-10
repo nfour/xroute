@@ -20,10 +20,8 @@
     "dev": "ladle serve --stories stories/**/*.stories.tsx"
   },
   "peerDependencies": {
-    "history": "5"
-  },
-  "optionalDependencies": {
-    "mobx": "^6.3.3"
+    "history": "5",
+    "mobx": "^6"
   },
   "dependencies": {
     "@types/qs": "^6.9.15",

@@ -1,40 +1,9 @@
-import { makeAutoObservable, reaction, } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import { match } from 'path-to-regexp';
 import * as qs from 'qs';
-import { isEqual, set, unset } from 'lodash';
+import { set, unset } from 'lodash';
 import microdiff from 'microdiff';
-class Reaction {
-    constructor(expression, effect, options = {}) {
-        Object.defineProperty(this, "expression", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: expression
-        });
-        Object.defineProperty(this, "effect", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: effect
-        });
-        Object.defineProperty(this, "dispose", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: void 0
-        });
-        Object.defineProperty(this, "trigger", {
-            enumerable: true,
-            configurable: true,
-            writable: true,
-            value: () => this.effect(this.expression())
-        });
-        this.dispose = reaction(expression, effect, {
-            equals: isEqual,
-            ...options,
-        });
-    }
-}
+import { Reactor } from './Reactor';
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -105,7 +74,7 @@ export class LiveXRoute {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reaction(() => qs.parse(this.router.search, {
+            value: new Reactor(() => qs.parse(this.router.search, {
                 ignoreQueryPrefix: true,
                 ...this.router.options.qs?.parse,
             }), (search) => {
@@ -120,7 +89,7 @@ export class LiveXRoute {
             enumerable: true,
             configurable: true,
             writable: true,
-            value: new Reaction(() => this.pathnameMatch?.params ?? {}, (pathname) => {
+            value: new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
                 if (!this.options.useOptimizedObservability) {
                     this.pathname = pathname;
                     return;
@@ -148,6 +117,8 @@ export class LiveXRoute {
             toJSON: false,
             options: false,
         });
+        this.searchReactor.react().fire();
+        this.pathnameReactor.react().fire();
     }
     /**
      * The hash string

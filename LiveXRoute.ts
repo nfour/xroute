@@ -1,15 +1,11 @@
-import {
-  makeAutoObservable,
-  reaction,
-  type IReactionDisposer,
-  type IReactionOptions,
-} from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { RouteConfig } from './XRoute'
 import { type XRouter, type XRouterOptions } from './XRouter'
 import { match } from 'path-to-regexp'
 import * as qs from 'qs'
-import { isEqual, set, unset } from 'lodash'
+import { set, unset } from 'lodash'
 import microdiff from 'microdiff'
+import { Reactor } from './Reactor'
 
 type Partial2Deep<T, DEPTH = 1> = {
   [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>
@@ -20,22 +16,6 @@ export type LiveXRouteOptions = Pick<
   'useOptimizedObservability'
 >
 
-class Reaction<T> {
-  dispose: IReactionDisposer
-
-  constructor(
-    public expression: () => T,
-    public effect: (arg: T) => void,
-    options: IReactionOptions<any> = {},
-  ) {
-    this.dispose = reaction(expression, effect, {
-      equals: isEqual,
-      ...options,
-    })
-  }
-
-  trigger = () => this.effect(this.expression())
-}
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -67,6 +47,9 @@ export class LiveXRoute<
       toJSON: false,
       options: false,
     })
+
+    this.searchReactor.react().fire()
+    this.pathnameReactor.react().fire()
   }
 
   /**
@@ -101,7 +84,7 @@ export class LiveXRoute<
     return this.router.hash.split('#')[1]
   }
 
-  private searchReactor = new Reaction(
+  private searchReactor = new Reactor(
     () =>
       qs.parse(this.router.search, {
         ignoreQueryPrefix: true,
@@ -118,7 +101,7 @@ export class LiveXRoute<
     },
   )
 
-  private pathnameReactor = new Reaction(
+  private pathnameReactor = new Reactor(
     () => this.pathnameMatch?.params ?? {},
     (pathname) => {
       if (!this.options.useOptimizedObservability) {
