@@ -48,8 +48,8 @@ export class LiveXRoute<
       options: false,
     })
 
-    this.searchReactor.react().fire()
-    this.pathnameReactor.react().fire()
+    this.searchReactor.react()
+    this.pathnameReactor.react()
   }
 
   /**

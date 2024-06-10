@@ -112,14 +112,14 @@ export class XRouter<CONFIGS extends RouteConfig[]> {
       options: false,
     })
 
+    this.historyObserver.listen()
+
     this.routes = Object.fromEntries(
       this.definition.map((config) => [
         config.key,
         new LiveXRoute(config, this, this.options),
       ]),
     ) as any
-
-    this.historyObserver.listen()
   }
 
   /**

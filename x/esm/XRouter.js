@@ -197,11 +197,11 @@ export class XRouter {
             routes: false,
             options: false,
         });
+        this.historyObserver.listen();
         this.routes = Object.fromEntries(this.definition.map((config) => [
             config.key,
             new LiveXRoute(config, this, this.options),
         ]));
-        this.historyObserver.listen();
     }
     /** The currently active route. */
     get route() {

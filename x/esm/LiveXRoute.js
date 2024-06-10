@@ -117,8 +117,8 @@ export class LiveXRoute {
             toJSON: false,
             options: false,
         });
-        this.searchReactor.react().fire();
-        this.pathnameReactor.react().fire();
+        this.searchReactor.react();
+        this.pathnameReactor.react();
     }
     /**
      * The hash string
