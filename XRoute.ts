@@ -96,9 +96,7 @@ export class XRouteConstructor<
     )
   }
 
-  Schema = <Z extends RouteSchema, X extends MergeDeep<SCHEMA, Z>>(
-    build: (s: SCHEMA) => Z,
-  ) => {
+  Schema = <Z extends RouteSchema>(build: (s: SCHEMA) => Z) => {
     const newStructure = new XRouteSchema(this, build(this.structure))
 
     return new XRouteConstructor(

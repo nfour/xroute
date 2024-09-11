@@ -1,3 +1,4 @@
+export * from 'zod';
 export class XRouteSchema {
     constructor(config, schema) {
         Object.defineProperty(this, "config", {

@@ -38,7 +38,7 @@ export declare class XRouteConstructor<KEY extends string, RESOURCE extends stri
         hash?: LOCATION['hash'];
     }), SCHEMA>;
     Extend<NEW_KEY extends string>(key: NEW_KEY): XRouteConstructor<NEW_KEY, RESOURCE, LOCATION, SCHEMA>;
-    Schema: <Z extends RouteSchema<z.ZodObject<{}, z.UnknownKeysParam, z.ZodTypeAny, {}, {}>, z.ZodObject<{}, z.UnknownKeysParam, z.ZodTypeAny, {}, {}>, undefined>, X extends MergeDeep<SCHEMA, Z>>(build: (s: SCHEMA) => Z) => XRouteConstructor<KEY, RESOURCE, {
+    Schema: <Z extends RouteSchema<z.ZodObject<{}, z.UnknownKeysParam, z.ZodTypeAny, {}, {}>, z.ZodObject<{}, z.UnknownKeysParam, z.ZodTypeAny, {}, {}>, undefined>>(build: (s: SCHEMA) => Z) => XRouteConstructor<KEY, RESOURCE, {
         pathname: z.TypeOf<NonNullable<Z["pathname"]>>;
         search: z.TypeOf<NonNullable<Z["search"]>>;
         hash?: z.TypeOf<NonNullable<Z["hash"]>> | undefined;

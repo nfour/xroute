@@ -21,6 +21,7 @@
   },
   "peerDependencies": {
     "history": "5",
+    "zod": ">= 3",
     "mobx": "^6"
   },
   "dependencies": {

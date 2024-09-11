@@ -1,5 +1,6 @@
 import { type XRouteConstructor } from './XRoute';
 import type { z } from 'zod';
+export * from 'zod';
 export declare class XRouteSchema<CONSTRUCTOR extends XRouteConstructor<any, any, any, any>, SCHEMA extends RouteSchema = RouteSchema> {
     config: CONSTRUCTOR;
     schema: SCHEMA;
