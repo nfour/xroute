@@ -18,3 +18,4 @@ __exportStar(require("./XRouter"), exports);
 __exportStar(require("./XRoute"), exports);
 __exportStar(require("./LiveXRoute"), exports);
 __exportStar(require("./HistoryObserver"), exports);
+__exportStar(require("./XRouteSchema"), exports);
