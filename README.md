@@ -2,6 +2,12 @@
 
 Mobx powered `History` router, with types.
 
++ [Features](#features)
++ [Usage](#usage)
++ [Troubleshooting](#troubleshooting)
+  + [Typescript errors](#typescript-errors)
+
+
 ## Features
 
 - [x] Declarative observable wrapper over the `History` interface
@@ -10,6 +16,8 @@ Mobx powered `History` router, with types.
 - [x] Type safe `hash` string
 - [x] Workarounds for some known issues with History: [Here](https://github.com/ReactTraining/history/issues/811)
 - [x] Route inheritance for nesting routes 
+
+
 
 ## Usage
 
@@ -276,9 +284,9 @@ const listenToUserProfileRoute = () => {
 
 ```
 
-## Compatability
+## Troubleshooting
 
-### Troubleshooting typescript: The inferred type of "X" cannot be named without
+### Typescript errors
 
 Are you getting an error like this?
 
@@ -288,7 +296,7 @@ The inferred type of "X" cannot be named without a reference to "Y"
 
 This can be an issue now that the project uses `zod` for schema generation support.
 
-It can help to update your tsconfig.json
+It can help to update your tsconfig.json with this:
 
 ```json
 {
@@ -303,7 +311,7 @@ It can help to update your tsconfig.json
 Or if that doesnt work, add one of these imports anywhere in your project
 
 ```ts
-import 'xroute/schema'
-// or if that doesnt work in your typescript config, use the ugly path:
-import 'xroute/esm/XRouteSchema'
+import 'xroute/XRouteSchema'
+// or if that doesnt work in your older typescript project, use the ugly path:
+import 'xroute/x/esm/XRouteSchema'
 ```
