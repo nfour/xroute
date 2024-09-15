@@ -275,3 +275,35 @@ const listenToUserProfileRoute = () => {
 }
 
 ```
+
+## Compatability
+
+### Troubleshooting typescript: The inferred type of "X" cannot be named without
+
+Are you getting an error like this?
+
+```
+The inferred type of "X" cannot be named without a reference to "Y"
+```
+
+This can be an issue now that the project uses `zod` for schema generation support.
+
+It can help to update your tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
+  }
+}
+
+```
+
+Or if that doesnt work, add one of these imports anywhere in your project
+
+```ts
+import 'xroute/schema'
+// or if that doesnt work in your typescript config, use the ugly path:
+import 'xroute/esm/XRouteSchema'
+```

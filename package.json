@@ -8,6 +8,16 @@
   "main": "./x/cjs/index.js",
   "module": "./x/esm/index.js",
   "types": "./x/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./x/esm/index.js",
+      "require": "./x/cjs/index.js"
+    },
+    "./schema": {
+      "import": "./x/esm/XRouteSchema.js",
+      "require": "./x/cjs/XRouteSchema.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/nfour/xroute"
@@ -16,7 +26,10 @@
     "build": "pnpm build:clean; pnpm build:cjs; pnpm build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs:watch": "tsc -p tsconfig.cjs.json --watch",
+    "build:esm:watch": "tsc -p tsconfig.esm.json --watch",
     "build:clean": "rm -rf x/*",
+    "build:watch": "pnpm build:clean; pnpm run '/(cjs|esm):watch$/'",
     "dev": "ladle serve --stories stories/**/*.stories.tsx"
   },
   "peerDependencies": {
