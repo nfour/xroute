@@ -15,7 +15,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // For zod schema
-require("./XRouteSchema");
+__exportStar(require("./XRouteSchema"), exports);
 __exportStar(require("./XRouter"), exports);
 __exportStar(require("./XRoute"), exports);
 __exportStar(require("./LiveXRoute"), exports);
