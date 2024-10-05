@@ -16,6 +16,10 @@
     "./schema": {
       "import": "./x/esm/XRouteSchema.js",
       "require": "./x/cjs/XRouteSchema.js"
+    },
+    "./x/esm/*": {
+      "import": "./x/esm/*",
+      "require": "./x/cjs/*"
     }
   },
   "repository": {
