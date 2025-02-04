@@ -32,8 +32,8 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs:watch": "tsc -p tsconfig.cjs.json --watch",
     "build:esm:watch": "tsc -p tsconfig.esm.json --watch",
-    "build:clean": "rm -rf x/*",
     "build:watch": "pnpm build:clean; pnpm run '/(cjs|esm):watch$/'",
+    "build:clean": "rm -rf x/*",
     "dev": "ladle serve --stories stories/**/*.stories.tsx"
   },
   "peerDependencies": {
