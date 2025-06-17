@@ -1,9 +1,8 @@
 import { makeAutoObservable } from 'mobx';
 import { match } from 'path-to-regexp';
 import * as qs from 'qs';
-import { set, unset } from 'lodash';
-import microdiff from 'microdiff';
 import { Reactor } from './Reactor';
+import { diffMerge } from './diffing';
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -79,7 +78,7 @@ export class LiveXRoute {
                 ...this.router.options.qs?.parse,
             }), (search) => {
                 if (this.options.useOptimizedObservability) {
-                    diffMerge(this.search, search);
+                    diffMerge(this.search, search, this.options.useOptimizedObservability);
                     return;
                 }
                 this.search = search;
@@ -90,11 +89,11 @@ export class LiveXRoute {
             configurable: true,
             writable: true,
             value: new Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
-                if (!this.options.useOptimizedObservability) {
-                    this.pathname = pathname;
+                if (this.options.useOptimizedObservability) {
+                    diffMerge(this.pathname, pathname, this.options.useOptimizedObservability);
                     return;
                 }
-                diffMerge(this.pathname, pathname);
+                this.pathname = pathname;
             })
         });
         /** Cleanup reactions */
@@ -146,10 +145,7 @@ export class LiveXRoute {
         };
     }
     get pathnameMatch() {
-        return (match(this.resource, {
-            decode: decodeURI,
-            encode: encodeURI,
-        })(this.router.pathname) || undefined);
+        return (match(this.resource, { decode: decodeURI, encode: encodeURI })(this.router.pathname) || undefined);
     }
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -264,20 +260,4 @@ export class LiveXRoute {
             return input(this);
         return input;
     }
-}
-/** Merges by using `microdiff` */
-function diffMerge(prev, next) {
-    const diff = microdiff(prev, next);
-    for (const event of diff) {
-        switch (event.type) {
-            case 'CREATE':
-            case 'CHANGE':
-                set(prev, event.path, event.value);
-                break;
-            case 'REMOVE':
-                unset(prev, event.path);
-                break;
-        }
-    }
-    return null;
 }

@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isEqual } from 'es-toolkit';
 import { reaction } from 'mobx';
 export class Reactor {
     constructor(expression, effect, options = {}) {

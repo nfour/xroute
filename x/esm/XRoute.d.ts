@@ -1,4 +1,4 @@
-import type { Merge, MergeDeep, Replace } from 'type-fest';
+import type { Merge, MergeDeep } from 'type-fest';
 import { type LocationType } from './XRouter';
 import { XRouteSchema, type RouteSchema } from './XRouteSchema';
 import { z } from 'zod';
@@ -22,7 +22,7 @@ export declare class XRouteConstructor<KEY extends string, RESOURCE extends stri
     location: LOCATION;
     structure: SCHEMA;
     constructor(key: KEY, resource?: RESOURCE, location?: LOCATION, structure?: SCHEMA);
-    Resource<R extends string>(r: R): XRouteConstructor<KEY, Replace<`${RESOURCE}${R}`, "//", "/">, LOCATION, SCHEMA>;
+    Resource<R extends string>(r: R): XRouteConstructor<KEY, `${RESOURCE}${R}` extends infer T ? T extends `${RESOURCE}${R}` ? T extends `${infer Head}//${infer Tail}` ? `${Head}/${Tail}` : `${T}` : never : never, LOCATION, SCHEMA>;
     Type<T extends LocationType>(l?: T): XRouteConstructor<KEY, RESOURCE, {
         pathname: Merge<LOCATION['pathname'], T['pathname']>;
         search: MergeDeep<LOCATION['search'], T['search']>;

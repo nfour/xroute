@@ -4,9 +4,8 @@ exports.LiveXRoute = void 0;
 const mobx_1 = require("mobx");
 const path_to_regexp_1 = require("path-to-regexp");
 const qs = require("qs");
-const lodash_1 = require("lodash");
-const microdiff_1 = require("microdiff");
 const Reactor_1 = require("./Reactor");
+const diffing_1 = require("./diffing");
 /**
  * A "live" route, typically found at:
  * @example new XRouter(...).routes.myFooRoute
@@ -82,7 +81,7 @@ class LiveXRoute {
                 ...this.router.options.qs?.parse,
             }), (search) => {
                 if (this.options.useOptimizedObservability) {
-                    diffMerge(this.search, search);
+                    (0, diffing_1.diffMerge)(this.search, search, this.options.useOptimizedObservability);
                     return;
                 }
                 this.search = search;
@@ -93,11 +92,11 @@ class LiveXRoute {
             configurable: true,
             writable: true,
             value: new Reactor_1.Reactor(() => this.pathnameMatch?.params ?? {}, (pathname) => {
-                if (!this.options.useOptimizedObservability) {
-                    this.pathname = pathname;
+                if (this.options.useOptimizedObservability) {
+                    (0, diffing_1.diffMerge)(this.pathname, pathname, this.options.useOptimizedObservability);
                     return;
                 }
-                diffMerge(this.pathname, pathname);
+                this.pathname = pathname;
             })
         });
         /** Cleanup reactions */
@@ -149,10 +148,7 @@ class LiveXRoute {
         };
     }
     get pathnameMatch() {
-        return ((0, path_to_regexp_1.match)(this.resource, {
-            decode: decodeURI,
-            encode: encodeURI,
-        })(this.router.pathname) || undefined);
+        return ((0, path_to_regexp_1.match)(this.resource, { decode: decodeURI, encode: encodeURI })(this.router.pathname) || undefined);
     }
     /**
      * Whether this route's `resource` matches the current `pathname`.
@@ -269,19 +265,3 @@ class LiveXRoute {
     }
 }
 exports.LiveXRoute = LiveXRoute;
-/** Merges by using `microdiff` */
-function diffMerge(prev, next) {
-    const diff = (0, microdiff_1.default)(prev, next);
-    for (const event of diff) {
-        switch (event.type) {
-            case 'CREATE':
-            case 'CHANGE':
-                (0, lodash_1.set)(prev, event.path, event.value);
-                break;
-            case 'REMOVE':
-                (0, lodash_1.unset)(prev, event.path);
-                break;
-        }
-    }
-    return null;
-}

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Reactor = void 0;
-const lodash_1 = require("lodash");
+const es_toolkit_1 = require("es-toolkit");
 const mobx_1 = require("mobx");
 class Reactor {
     constructor(expression, effect, options = {}) {
@@ -44,7 +44,7 @@ class Reactor {
             writable: true,
             value: () => {
                 this.dispose = (0, mobx_1.reaction)(this.expression, this.effect, {
-                    equals: lodash_1.isEqual,
+                    equals: es_toolkit_1.isEqual,
                     ...this.options,
                 });
                 return this;
