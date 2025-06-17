@@ -1,4 +1,3 @@
-import { isEqual } from 'es-toolkit'
 import { reaction, type IReactionDisposer, type IReactionOptions } from 'mobx'
 
 export class Reactor<T> {
@@ -18,7 +17,6 @@ export class Reactor<T> {
 
   react = () => {
     this.dispose = reaction(this.expression, this.effect, {
-      equals: isEqual,
       ...this.options,
     })
 

@@ -1,4 +1,3 @@
-import { isEqual } from 'es-toolkit';
 import { reaction } from 'mobx';
 export class Reactor {
     constructor(expression, effect, options = {}) {
@@ -41,7 +40,6 @@ export class Reactor {
             writable: true,
             value: () => {
                 this.dispose = reaction(this.expression, this.effect, {
-                    equals: isEqual,
                     ...this.options,
                 });
                 return this;
