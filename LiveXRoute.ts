@@ -3,9 +3,8 @@ import { RouteConfig } from './XRoute'
 import { type XRouter, type XRouterOptions } from './XRouter'
 import { match } from 'path-to-regexp'
 import * as qs from 'qs'
-import { set, unset } from 'lodash'
-import microdiff from 'microdiff'
 import { Reactor } from './Reactor'
+import { diffMerge } from './diffing'
 
 type Partial2Deep<T, DEPTH = 1> = {
   [P in keyof T]?: DEPTH extends 2 ? T[P] : Partial2Deep<T[P], 2>
@@ -92,7 +91,7 @@ export class LiveXRoute<
       }),
     (search) => {
       if (this.options.useOptimizedObservability) {
-        diffMerge(this.search, search)
+        diffMerge(this.search, search, this.options.useOptimizedObservability)
 
         return
       }
@@ -104,13 +103,17 @@ export class LiveXRoute<
   private pathnameReactor = new Reactor(
     () => this.pathnameMatch?.params ?? {},
     (pathname) => {
-      if (!this.options.useOptimizedObservability) {
-        this.pathname = pathname
+      if (this.options.useOptimizedObservability) {
+        diffMerge(
+          this.pathname,
+          pathname,
+          this.options.useOptimizedObservability,
+        )
 
         return
       }
 
-      diffMerge(this.pathname, pathname)
+      this.pathname = pathname
     },
   )
 
@@ -133,10 +136,9 @@ export class LiveXRoute<
 
   get pathnameMatch() {
     return (
-      match(this.resource, {
-        decode: decodeURI,
-        encode: encodeURI,
-      })(this.router.pathname) || undefined
+      match(this.resource, { decode: decodeURI, encode: encodeURI })(
+        this.router.pathname,
+      ) || undefined
     )
   }
 
@@ -302,23 +304,4 @@ export class LiveXRoute<
 
     return input
   }
-}
-
-/** Merges by using `microdiff` */
-function diffMerge(prev: object, next: object) {
-  const diff = microdiff(prev, next)
-
-  for (const event of diff) {
-    switch (event.type) {
-      case 'CREATE':
-      case 'CHANGE':
-        set(prev, event.path, event.value)
-        break
-      case 'REMOVE':
-        unset(prev, event.path)
-        break
-    }
-  }
-
-  return null
 }

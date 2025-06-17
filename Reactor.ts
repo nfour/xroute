@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash'
+import { isEqual } from 'es-toolkit'
 import { reaction, type IReactionDisposer, type IReactionOptions } from 'mobx'
 
 export class Reactor<T> {

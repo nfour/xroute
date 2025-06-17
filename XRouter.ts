@@ -22,10 +22,11 @@ export interface XRouterOptions {
     format?: qs.IStringifyOptions
   }
   /**
-   * Whether to use `microdiff` to optimize `search` and `pathname` observability
-   * @default true
+   * Whether to use `microdiff` or `jsondiffpatch` to optimize `search` and `pathname` observability
+   * Can be disabled to guarantee full reactivity - entire object is updated on each change
+   * @default 'microdiff'
    */
-  useOptimizedObservability?: boolean
+  useOptimizedObservability?: boolean | 'microdiff' | 'jsondiffpatch'
 }
 
 /**

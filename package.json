@@ -38,22 +38,22 @@
   },
   "peerDependencies": {
     "history": "5",
-    "zod": ">= 3",
-    "mobx": "^6"
+    "mobx": "^6",
+    "zod": ">= 3"
   },
   "dependencies": {
     "@types/qs": "^6.9.15",
-    "lodash": "^4.17.21",
+    "jsondiffpatch": "^0.7.3",
+    "es-toolkit": "^1.39.3",
     "microdiff": "^1.4.0",
     "path-to-regexp": "^6.2.2",
     "qs": "^6.12.1",
-    "zod": "^3.23.8",
-    "type-fest": "^4.18.2"
+    "type-fest": "^4.18.2",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@emotion/react": "^11.11.4",
     "@ladle/react": "^4.0.3",
-    "@types/lodash": "^4.17.4",
     "@types/node": "^18.11.17",
     "@types/react": "^18.3.2",
     "@types/react-dom": "^18.3.0",
