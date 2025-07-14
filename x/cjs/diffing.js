@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.diffMerge = void 0;
+exports.diffMerge = diffMerge;
 const jsondiffpatch = require("jsondiffpatch");
 const compat_1 = require("es-toolkit/compat");
 const microdiff_1 = require("microdiff");
@@ -28,4 +28,3 @@ function diffMerge(prev, next, method = true) {
         }
     }
 }
-exports.diffMerge = diffMerge;
