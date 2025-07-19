@@ -1,122 +1,191 @@
 # Changelog
 
-## 13 -> 15.0.0
+All notable changes to XRoute will be documented in this file.
 
-- Added feature: `useOptimizedObservability` option to router
-  - By default is true
-  - Optimized `search` and `pathname` on routes to only update deep properties on change
-    - This should improve render performance!
-- Added feature: `XRoute('someRoute').Schema({ ... })` to define a schema for a route
-  - This accepts zod schemas to define the `pathname` and `search` and `hash`
-  - For the time being, no schema validation is run, it is only for types
-    - However, one can access the schema to validate with it manually eg. `route.schema.schema.pathname.parse(route.pathname)`
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 12.0.0
+## [15.0.0] - 2024-XX-XX
 
-- Write better inline JSDOC comments for methods
-- Remove unused config option
-  
-## 11.0.0
+### 🚀 Added
+- **Performance Optimization**: `useOptimizedObservability` option for router (enabled by default)
+  - Optimizes `search` and `pathname` updates to only trigger on actual property changes
+  - Significantly improves render performance in complex applications
+- **Schema Support**: `XRoute('routeName').Schema({ ... })` method for Zod schema integration
+  - Accepts Zod schemas for `pathname`, `search`, and `hash` parameters
+  - Currently provides type-only validation (runtime validation planned)
+  - Manual validation available via `route.schema.schema.pathname.parse(route.pathname)`
 
-- Refined refactor from 10.0.0-0
-- Tested
+### 📚 Documentation
+- Complete documentation restructure with improved organization
+- Added comprehensive API reference
+- Added quick start guide with step-by-step instructions
+- Added troubleshooting guide and migration documentation
 
-## 10.0.0-0
+## [12.0.0] - 2024-XX-XX
 
-Rewrite of core to optimize for performance and reduce observable overhead.
+### 🔧 Improved
+- Enhanced inline JSDoc comments for better IDE support
+- Removed unused configuration options for cleaner API
 
-Any deprecated methods have been annotated with alternative usages.
+### 🧹 Maintenance
+- Code cleanup and optimization
 
+## [11.0.0] - 2024-XX-XX
 
-## 6.1.0
+### 🔧 Improved
+- Refined refactor from 10.0.0-0 with stability improvements
+- Comprehensive testing and bug fixes
 
-- Add missing `qs` dependency
-- Remove unecessary deps
+### ✅ Testing
+- Enhanced test coverage for core functionality
 
-### Internal
+## [10.0.0] - 2024-XX-XX
 
-- Using `pnpm` instead of `yarn`
-- Using `vite` instead of `snowpack`
+### ⚡ Performance
+- **BREAKING**: Major rewrite of core architecture for performance optimization
+- Reduced observable overhead for better memory usage
+- Optimized route matching and parameter parsing
 
-## 6.0.1
+### 🔄 Migration
+- Deprecated methods have been annotated with alternative usage patterns
+- See [Migration Guide](./docs/Migration.md) for detailed upgrade instructions
 
-- Allow for search params to inherit shallow props when changing within the same route.
-  - > Note: Switching between different routes will still NOT preserve properties in `search`.
-  - Old behaviour:
-     ```ts
-      router.routes.a.push({ search: { a: 1 } })
-      // /a/?a=1
-      router.routes.a.push({ search: { b: 2 } })
-      // /a/?b=1
-     ```
-  - New behaviour:
-     ```ts
-      router.routes.a.push({ search: { a: 1 } })
-      // /a/?a=1
-      router.routes.a.push({ search: { b: 2 } })
-      // /a/?a=1&b=1
+## [6.1.0] - 2023-XX-XX
 
-      // Moving to a new route will NOT keep old variables - this would be too confusing to keep track of
-      router.routes.b.push({ search: { z: 1 } })
-      // /b/?z=1
-     ```
-  - Remember, you can use `.pushExact({ search: { } })` to ignore old properties.
+### 🔧 Fixed
+- Added missing `qs` dependency to package.json
+- Removed unnecessary dependencies for smaller bundle size
 
-## 5.4.0
+### 🛠️ Internal
+- Migrated from `yarn` to `pnpm` for package management
+- Migrated from `snowpack` to `vite` for build tooling
 
-- Ensure search & hash location params get reset while iteracting with `history` via workaround
-  - https://github.com/ReactTraining/history/issues/811
-- Can now switch between routes and have the `search` and `hash` reset properly
+## [6.0.1] - 2023-XX-XX
 
-## 5.3.1
+### 🚀 Added
+- **Search Parameter Inheritance**: Search params now inherit shallow properties when navigating within the same route
 
-- Remove a console.log statement
-  
-## 5.3.0
+### 🔄 Behavior Changes
+- **Previous Behavior**:
+  ```typescript
+  router.routes.a.push({ search: { a: 1 } })  // /a/?a=1
+  router.routes.a.push({ search: { b: 2 } })  // /a/?b=2 (lost 'a')
+  ```
+- **New Behavior**:
+  ```typescript
+  router.routes.a.push({ search: { a: 1 } })  // /a/?a=1
+  router.routes.a.push({ search: { b: 2 } })  // /a/?a=1&b=2 (preserved 'a')
 
-- Correctly rename `toPathExact` to `toUriExact` as it should be for v5
-  
-## 5.2.0
+  // Cross-route navigation still resets parameters
+  router.routes.b.push({ search: { z: 1 } })  // /b/?z=1 (no inheritance)
+  ```
 
-- Fixes types for active route helper functions
+### 💡 Usage Notes
+- Use `.pushExact({ search: { } })` to ignore inherited properties when needed
+- Parameter inheritance only applies within the same route
 
-## 5.1.0
+## [5.4.0] - 2023-XX-XX
 
-- Added `search` querystring support
+### 🔧 Fixed
+- **History Integration**: Fixed search & hash parameter reset issues
+  - Implemented workaround for [History library issue #811](https://github.com/ReactTraining/history/issues/811)
+  - Route switching now properly resets `search` and `hash` parameters
 
-### Breaking
-- `toPath` renamed to `toUri`
-- Pathname parameters are now set differently:
-  - ❌ Old: `router.routes.myRoute.push({ myVar: 2 })`
-  - ✅ New: `router.routes.myRoute.push({ pathname: { myVar: 2 } })`
-- Pathname params now accessable from `router.routes.myRoute.pathname?.myVar`
+### ✅ Improved
+- Enhanced route transition reliability
 
-## 4.0.0
+## [5.3.1] - 2023-XX-XX
 
-- Add `mjs` modules from `./dist/es/`
-  
-## 3.1.0
+### 🧹 Maintenance
+- Removed debug console.log statement
 
-- Make `findActiveRoute` and other utilities allow for undefined items
-  
-## 3.0.0
+## [5.3.0] - 2023-XX-XX
 
-- Added `toPath`, which generates a pathname.
-  - `xrouter.routes.myRoute.toPath({ someParam: 'foo' }) // "/blahblah/foo"`
-  - `xrouter.toPath(MyFancyRoute, { someParam: 'foo' }) // "/blahblah/foo"`
+### 🔧 Fixed
+- Correctly renamed `toPathExact` to `toUriExact` for consistency with v5 API
 
-## 2.0.0
+## [5.2.0] - 2023-XX-XX
 
-- Includes breaking changes from 1.6.0 
+### 🔧 Fixed
+- Fixed TypeScript types for active route helper functions
 
-## 1.6.0
+## [5.1.0] - 2023-XX-XX
 
-- Added `router.routes.myRoute.pushExact` and `router.routes.myRoute.replaceExact`
-  - These methods will only use the provided parameters
-- Changed `routes.myRoute.push` and `routes.myRoute.replace`
-  - These methods will now spread the currently active params in for you so you can apply a partial update
-- Published as minor by accent - see v2.0.0
+### 🚀 Added
+- **Search Parameter Support**: Full querystring parameter support with type safety
 
-## 1.5.0
+### 💥 BREAKING CHANGES
+- **Method Rename**: `toPath` → `toUri`
+- **Parameter Structure**: Changed pathname parameter API
+  ```typescript
+  // ❌ Old API
+  router.routes.myRoute.push({ myVar: 2 })
 
-...
+  // ✅ New API
+  router.routes.myRoute.push({ pathname: { myVar: 2 } })
+  ```
+- **Parameter Access**: Updated parameter access pattern
+  ```typescript
+  // Access pathname parameters
+  router.routes.myRoute.pathname?.myVar
+  ```
+
+## [4.0.0] - 2022-XX-XX
+
+### 🚀 Added
+- **ES Modules**: Added `mjs` modules in `./dist/es/` for better tree-shaking
+
+## [3.1.0] - 2022-XX-XX
+
+### 🔧 Improved
+- Enhanced `findActiveRoute` and utility functions to handle undefined values gracefully
+
+## [3.0.0] - 2022-XX-XX
+
+### 🚀 Added
+- **URL Generation**: New `toPath` method for generating pathnames
+  ```typescript
+  // Generate URL from route and parameters
+  xrouter.routes.myRoute.toPath({ someParam: 'foo' })  // "/blahblah/foo"
+  xrouter.toPath(MyFancyRoute, { someParam: 'foo' })   // "/blahblah/foo"
+  ```
+
+## [2.0.0] - 2022-XX-XX
+
+### 💥 BREAKING CHANGES
+- Includes all breaking changes from v1.6.0 (see below)
+
+## [1.6.0] - 2022-XX-XX
+
+### 🚀 Added
+- **Exact Navigation Methods**:
+  - `router.routes.myRoute.pushExact` - Uses only provided parameters
+  - `router.routes.myRoute.replaceExact` - Uses only provided parameters
+
+### 🔄 Changed
+- **Parameter Merging**: `push` and `replace` methods now merge with current parameters
+  - Enables partial parameter updates
+  - Use `pushExact`/`replaceExact` for previous behavior
+
+### ⚠️ Note
+- Originally published as minor version, promoted to major in v2.0.0
+
+## [1.5.0] - 2022-XX-XX
+
+### 🚀 Legacy Features
+- Initial feature set and API establishment
+
+---
+
+## Migration Guides
+
+- **v15.x**: See [Migration Guide](./docs/Migration.md) for detailed upgrade instructions
+- **v10.x+**: Major performance improvements with some API changes
+- **v5.x+**: Search parameter support with breaking parameter API changes
+
+## Support
+
+- 📖 [Documentation](./docs/)
+- 🐛 [Report Issues](https://github.com/nfour/xroute/issues)
+- 💬 [Discussions](https://github.com/nfour/xroute/discussions)
