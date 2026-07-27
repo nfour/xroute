@@ -27,12 +27,12 @@
     "url": "https://github.com/nfour/xroute"
   },
   "scripts": {
-    "build": "pnpm build:clean; pnpm build:cjs; pnpm build:esm",
+    "build": "nub run build:clean && nub run build:cjs && nub run build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs:watch": "tsc -p tsconfig.cjs.json --watch",
     "build:esm:watch": "tsc -p tsconfig.esm.json --watch",
-    "build:watch": "pnpm build:clean; pnpm run '/(cjs|esm):watch$/'",
+    "build:watch": "nub run build:clean && nub run '/(cjs|esm):watch$/'",
     "build:clean": "rm -rf x/*",
     "dev": "ladle serve --stories stories/**/*.stories.tsx"
   },
