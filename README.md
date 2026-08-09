@@ -1,317 +1,215 @@
 # XRoute
 
-Mobx powered `History` router, with types.
+A type-safe, MobX-powered router for React applications with declarative route definitions and observable navigation state.
 
-+ [Features](#features)
-+ [Usage](#usage)
-+ [Troubleshooting](#troubleshooting)
-  + [Typescript errors](#typescript-errors)
+## Table of Contents
 
+- [Overview](#overview)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Core Concepts](#core-concepts)
+- [Documentation](#documentation)
+- [Examples](#examples)
+- [What's New](#whats-new)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
 
-## Features
+## Overview
 
-- [x] Declarative observable wrapper over the `History` interface
-- [x] Type safe `pathname` params
-- [x] Type safe `search` params via `qs` serialization
-- [x] Type safe `hash` string
-- [x] Workarounds for some known issues with History: [Here](https://github.com/ReactTraining/history/issues/811)
-- [x] Route inheritance for nesting routes 
+XRoute provides a modern, type-safe routing solution that integrates seamlessly with MobX and React. It offers:
 
+- **Type Safety**: Full TypeScript support for pathname, search, and hash parameters
+- **MobX Integration**: Observable router state with automatic re-rendering
+- **Declarative Routes**: Clean, composable route definitions
+- **Route Inheritance**: Nested routes with parameter inheritance
+- **History Integration**: Built on the standard `history` library
+- **Performance Optimized**: Efficient observable updates and render optimization
 
+## Installation
 
-## Usage
-
-- [x] Requires >= Mobx@6
-
-> See the [stories for usage examples](./stories/mobx.stories.tsx)
-
-- [docs/routeDefinition.ts](./docs/routeDefinition.ts)
-
-![image](https://github.com/nfour/xroute/assets/2108452/c7b118f8-f180-4e1b-99ca-15b130b71470)
-
-```tsx
-import { createBrowserHistory } from 'history'
-import { XRoute, XRouter } from 'xroute'
-
-/** A simple route, matches the `/`, the root page */
-export const HomeRoute = XRoute('home')
-  .Resource('/') // /
-  .Type<{
-    pathname: {}
-    search: {}
-  }>()
-
-export const AdminRoute = XRoute('admin')
-  .Resource(
-    `/admin`, // /admin
-  )
-  .Type<{
-    pathname: {}
-    search: { isAdvancedView?: boolean }
-  }>()
-
-enum AdminAnalyticsSubSections {
-  TopPages = 'topPages',
-  TopUsers = 'topUsers',
-  RawData = 'rawData',
-}
-
-const AdminAnalyticsSubsectionsURI = `:subSection(${AdminAnalyticsSubSections.TopPages}|${AdminAnalyticsSubSections.TopUsers}|${AdminAnalyticsSubSections.RawData})?`
-
-//
-// OR:
-//    if you dont care about type safety, do this:
-//
-
-const AdminAnalyticsSubsectionsURILoose = `:subSection(${Object.values(
-  AdminAnalyticsSubSections,
-).join('|')})?` as const
-
-export const AdminAnalyticsRoute = AdminRoute.Extend('adminAnalytics')
-  .Resource(`/analytics/${AdminAnalyticsSubsectionsURI}`) // /admin/analytics/:subSection(topPages|topUsers|rawData)
-  .Type<{
-    pathname: { subSection?: AdminAnalyticsSubSections }
-    search: {}
-  }>()
-
-export const AdminUsersRoute = AdminRoute.Extend('adminUsers')
-  .Resource(`/users`) // /admin/users
-  .Type<{
-    pathname: {}
-
-    // You don't need to use the pathname at all if you want to keep it simple
-    // Can even nest objects and arrays.
-    search: {
-      userId?: string // ends up as ?userId=123
-      editor?: {
-        line?: string
-        activeToolId?: string
-        selectedItems?: string[]
-      } // ?editor[line]=1&editor[activeToolId]=2&editor[selectedItems]=3&editor[selectedItems]=4
-    }
-  }>()
-
-export const NotFoundRoute = XRoute('notFound')
-  .Resource('/:someGarbage(.*)?') // /:someGarbage(.*)?
-  .Type<{
-    pathname: {
-      /** The pathname that didnt match any route */
-      someGarbage?: string
-    }
-    search: {}
-  }>()
-
-export function createRouter() {
-  return new XRouter(
-    // Order matters, notice the `notFound` route is at the end, to act as a fallback
-    [
-      AdminAnalyticsRoute, // /admin/analytics/topPages
-      AdminUsersRoute, // /admin/users?userId=123&editor[line]=1&editor[activeToolId]=2&editor[selectedItems]=3&editor[selectedItems]=4
-      AdminRoute, // /admin
-      HomeRoute, // /
-      NotFoundRoute, // /asdaskjdkalsdjklasd
-    ],
-    createBrowserHistory(),
-  )
-}
-
+```bash
+npm install xroute history mobx zod
+# or
+yarn add xroute history mobx zod
+# or
+pnpm add xroute history mobx zod
 ```
 
-- [docs/fullExample.tsx](./docs/fullExample.tsx)
+### Peer Dependencies
 
-```tsx
-import { createHashHistory } from 'history'
-import { autorun, makeAutoObservable, reaction } from 'mobx'
-import { observer } from 'mobx-react-lite'
-import * as React from 'react'
-import { XRoute, XRouter } from 'xroute'
+- `history` ^5.0.0
+- `mobx` ^6.0.0
+- `zod` ^3.0.0
 
-//
-// Define some routes
-//
+## Quick Start
 
+### 1. Define Your Routes
+
+```typescript
+import { XRoute } from 'xroute'
+
+// Simple route with no parameters
 const HomeRoute = XRoute('home')
-  .Resource('/') // Optional language param, eg. /en or /
+  .Resource('/')
   .Type<{
     pathname: {}
-    search: { language?: 'en' | 'da' | 'de' }
+    search: {}
   }>()
 
-const UserProfileRoute = HomeRoute.Extend('userProfile')
-  .Resource('/user/:userId') // Required language, eg. /da/user/11
+// Route with parameters
+const UserRoute = XRoute('user')
+  .Resource('/user/:userId')
   .Type<{
     pathname: { userId: string }
-    search: { profileSection: 'profile' | 'preferences' }
+    search: { tab?: 'profile' | 'settings' }
   }>()
+```
 
-const router = new XRouter([UserProfileRoute, HomeRoute], createHashHistory())
+### 2. Create a Router
 
-export type MyXRouter = typeof router
+```typescript
+import { createBrowserHistory } from 'history'
+import { XRouter } from 'xroute'
 
-// Log some changes
-autorun(() => console.log('Active route:', router.route))
+const router = new XRouter(
+  [UserRoute, HomeRoute], // Order matters - first match wins
+  createBrowserHistory()
+)
+```
 
-// Navigate to: /?language=en
-router.routes.home.push({ pathname: { language: 'en' } })
+### 3. Navigate Programmatically
 
-// Get the pathname, eg. to put inside an <a href="" />
-const homeDaUri = router.routes.home.toUri({ pathname: { language: 'da' } }) // "/da"
+```typescript
+// Navigate to home
+router.routes.home.push({})
 
-// Navigates to: /user/11?language=en
-router.routes.userProfile.push({
-  pathname: { userId: '11' },
-  search: { language: 'en' },
+// Navigate to user profile
+router.routes.user.push({
+  pathname: { userId: '123' },
+  search: { tab: 'profile' }
 })
 
-// Just change the language in the active route.
-// This works as long as the parameter is shared between all routes.
-// Navigates to: /user/11?language=da
-router.route?.push({ pathname: { language: 'da' } })
+// Get current route information
+console.log(router.route?.key) // 'user'
+console.log(router.routes.user.pathname?.userId) // '123'
+```
 
-// Re-use the current language
-// Navigates to: /?language=da
-router.routes.home.push({
-  search: { language: router.route?.search.language },
-})
+### 4. React Integration
 
-// Provide a route object to route from anywhere:
-// Navigate to: /de/user/55
-router.push(UserProfileRoute, {
-  pathname: { userId: '55' },
-  search: { language: 'de' },
-})
+```tsx
+import { observer } from 'mobx-react-lite'
 
-// Read route properties:
-
-/** This must be read from the `routes.userProfile` for the type to be consistent */
-router.routes.userProfile.pathname?.userId // => '55'
-
-/** Because `language` is available on all routes, we can read it from the active route at `router.route` */
-router.route?.search?.language
-
-class UserProfilePage {
-  constructor(private router: MyXRouter) {
-    this.router = router
-
-    makeAutoObservable(this)
-  }
-
-  get route() {
-    return this.router.routes.userProfile
-  }
-
-  get userId() {
-    return this.route.pathname?.userId
-  }
-
-  get profileSection() {
-    return this.route.search?.profileSection
-  }
-
-  setUserId(userId: string) {
-    // Uses current route params
-    this.route.push({ pathname: { userId } })
-
-    //
-    // or
-    //
-    // Explicitly use previous params...
-    this.route.pushExact((uri) => ({
-      ...uri,
-      pathname: { ...uri.pathname, userId },
-    }))
-  }
-
-  setProfileSection(profileSection: this['profileSection']) {
-    this.route.push({ search: { profileSection } }) // sets ?profileSection=""
-  }
-}
-
-// Play around with user profile:
-void (async () => {
-  const userProfilePage = new UserProfilePage(router)
-
-  userProfilePage.userId // 55
-
-  userProfilePage.setUserId('200')
-
-  await new Promise((r) => setTimeout(r, 50)) // Give it time to update the URL and come back...
-
-  userProfilePage.userId // 200
-})()
-
-const Component = observer(() => {
-  const [router] = React.useState(
-    () => new XRouter([UserProfileRoute, HomeRoute], createHashHistory()),
-  )
-
+const App = observer(() => {
   return (
-    <>
-      <nav>Active Language: {router.route?.search.language}</nav>
-      {router.route?.key === 'home' && <div>Home Page!</div>}
-      {
-        // Or do this:
-      }
-      {router.routes.userProfile.isActive && (
-        <div>
-          User Profile! UserID: {router.routes.userProfile.pathname?.userId}
-        </div>
-      )}
-    </>
+    <div>
+      {router.route?.key === 'home' && <HomePage />}
+      {router.route?.key === 'user' && <UserPage />}
+    </div>
   )
 })
-
-const listenToUserProfileRoute = () => {
-  let previousIsActive: boolean
-
-  reaction(
-    () => router.routes.userProfile.isActive,
-    (isActive) => {
-      if (isActive === previousIsActive) return // Ignore same state
-
-      previousIsActive = isActive
-
-      if (isActive) {
-        // on enter route
-        // ...
-      } else {
-        // on exit route
-        // ...
-      }
-    },
-  )
-}
-
 ```
 
-## Troubleshooting
+## Core Concepts
 
-### Typescript errors
+### Route Definition
+Routes are defined using the fluent API with `.Resource()` for URL patterns and `.Type<>()` for TypeScript types.
 
-Are you getting an error like this?
+### Route Inheritance
+Use `.Extend()` to create nested routes that inherit parent parameters and paths.
 
+### Observable State
+Router state is fully observable - components automatically re-render when routes change.
+
+### Type Safety
+All route parameters are type-checked at compile time, preventing runtime errors.
+
+## Documentation
+
+- **[Quick Start Guide](./docs/QuickStart.md)** - Step-by-step tutorial
+- **[API Reference](./docs/API.md)** - Complete API documentation
+- **[Examples](./docs/Examples.md)** - Common patterns and use cases
+- **[Troubleshooting](./docs/Troubleshooting.md)** - Common issues and solutions
+- **[Migration Guide](./docs/Migration.md)** - Upgrading between versions
+
+### Convention Guides
+- **[TypeScript Conventions](./docs/conventions/TypeScript.md)** - Type safety patterns
+- **[React Conventions](./docs/conventions/React.md)** - Component integration patterns
+- **[MobX Conventions](./docs/conventions/MobX.md)** - Observable state patterns
+
+## Examples
+
+### Basic Route Definition
+See [docs/routeDefinition.ts](./docs/routeDefinition.ts) for comprehensive route examples.
+
+### Complete React Application
+See [docs/fullExample.tsx](./docs/fullExample.tsx) for a full React/MobX integration example.
+
+### Interactive Examples
+Explore the [Storybook examples](./stories/mobx.stories.tsx) for interactive demonstrations.
+
+## What's New
+
+### Version 15.0.0
+- **Performance**: Added `useOptimizedObservability` for better render performance
+- **Schema Support**: Zod schema integration for route validation
+- **Type Safety**: Enhanced TypeScript support and error messages
+
+See the [CHANGELOG.md](./CHANGELOG.md) for complete version history.
+
+## Requirements
+
+- **Node.js**: >= 16.0.0
+- **TypeScript**: >= 4.5.0 (recommended >= 5.0.0)
+- **React**: >= 16.8.0 (for hooks support)
+- **MobX**: >= 6.0.0
+
+### Browser Support
+- Modern browsers with ES2020 support
+- IE11+ with polyfills
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines:
+
+1. **Issues**: Report bugs or request features via GitHub Issues
+2. **Pull Requests**: Follow our PR template and ensure tests pass
+3. **Documentation**: Help improve these docs by submitting PRs
+4. **Examples**: Share your XRoute patterns and use cases
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/nfour/xroute.git
+cd xroute
+
+# Install dependencies
+pnpm install
+
+# Run development server
+pnpm dev
+
+# Run tests
+pnpm test
+
+# Build the library
+pnpm build
 ```
-The inferred type of "X" cannot be named without a reference to "Y"
-```
 
-This can be an issue now that the project uses `zod` for schema generation support.
+### Project Structure
+- `src/` - Source code
+- `docs/` - Documentation and examples
+- `stories/` - Storybook examples
+- `x/` - Built output (CJS and ESM)
 
-It can help to update your tsconfig.json with this:
+## License
 
-```json
-{
-  "compilerOptions": {
-    "moduleResolution": "NodeNext",
-    "module": "NodeNext",
-  }
-}
+MIT License - see [LICENSE](./LICENSE) for details.
 
-```
+---
 
-Or if that doesnt work, add one of these imports anywhere in your project
-
-```ts
-import 'xroute/XRouteSchema'
-// or if that doesnt work in your older typescript project, use the ugly path:
-import 'xroute/x/esm/XRouteSchema'
-```
+**Need Help?**
+- 📖 [Documentation](./docs/)
+- 🐛 [Report Issues](https://github.com/nfour/xroute/issues)
+- 💬 [Discussions](https://github.com/nfour/xroute/discussions)
+- 📚 [Examples](./docs/Examples.md)
